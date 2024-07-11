@@ -1,6 +1,20 @@
 
 # Packages ----------------------------------------------------------------
 
+# using a reproducible environment
+renv::restore()
+
+# the cmdstanr package has to be installed manually
+# install.packages(
+#   "cmdstanr", 
+#   repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
+
+# The cmdstan backend, if not already installed, has to be installed on your 
+# computer first, outside of the project:
+# check_cmdstan_toolchain() # check if RTools is setup
+# nb_cores <- parallel::detectCores() - 1
+# install_cmdstan(cores = nb_cores)
+
 # pacman allows to check/install/load packages with a single call
 # if (!require("pacman")) install.packages("pacman") # already in renv.lock
 library("pacman")
@@ -13,8 +27,8 @@ pacman::p_load(
   labelled,  # labelled data
   # --- packages specific to this project ---
   brms,
-  rtdists,
   cmdstanr,
+  rtdists,
   simr,
   readxl,
   openxlsx,
