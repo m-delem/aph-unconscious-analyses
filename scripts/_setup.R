@@ -47,35 +47,3 @@ set.seed(14051998)
 # Adding all packages' citations to a .bib --------------------------------
 knitr::write_bib(c(.packages()), file = here("bibliography/packages.bib"))
 
-
-# Loading mandatory datasets ----------------------------------------------
-
-# Implicit task
-df_implicit <- 
-  read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
-    sheet = "data_implicit"
-  )
-
-# Explicit task
-df_explicit <- 
-  read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
-    sheet = "data_explicit"
-  )
-
-# Questionnaires
-df_questionnaires <- 
-  read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
-    sheet = "data_questionnaires"
-  )
-
-
-# Parallel processing -----------------------------------------------------
-
-# detecting the number of cores to use
-n_cores <- parallel::detectCores() - 1
-
-# defining the number of iterations per chain (+ 1000 warm-up)
-n_iter <- ceiling(40000 / n_cores) + 1000

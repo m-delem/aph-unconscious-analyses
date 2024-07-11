@@ -2,11 +2,20 @@
 library(here)
 source(here("scripts/_setup.R"))
 
+# Questionnaires
+df_questionnaires <- 
+  read_excel(
+    "data/data-raw/priming-data-raw.xlsx",
+    sheet = "data_questionnaires"
+  )
+
 # Explicit task -----------------------------------------------------------
 
-
-df_e_rt <-
-  df_explicit |>
+df_e_rt <- 
+  read_excel(
+    "data/data-raw/priming-data-raw.xlsx",
+    sheet = "data_implicit"
+  ) |>
   clean_variables() |> # see _functions.R
   # filtering out...
   filter(
@@ -39,7 +48,10 @@ df_e_rt <-
 
 
 df_i_rt <- 
-  df_implicit |>
+  read_excel(
+    "data/data-raw/priming-data-raw.xlsx",
+    sheet = "data_implicit"
+  ) |> 
   clean_variables() |>
   # filtering out...
   filter(
