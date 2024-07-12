@@ -27,8 +27,10 @@ pacman::p_load(
   labelled,  # labelled data
   # --- packages specific to this project ---
   brms,
+  tidybayes,
+  bayesplot,
+  scales,
   cmdstanr,
-  rtdists,
   simr,
   readxl,
   openxlsx,

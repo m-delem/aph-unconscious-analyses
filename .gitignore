@@ -17,3 +17,4 @@ _products
 _freeze
 # ignore anything in the data directory if need be (e.g. for privacy)
 # data/*
+data/ignored/*
