@@ -25,3 +25,7 @@ data/r-data-structures/brms-model-6.rds
 data/r-data-structures/brms-model-7.rds
 
 data/r-data-structures/brms-model-8.rds
+
+data/r-data-structures/brms-model-explicit.rds
+
+data/r-data-structures/brms-model-implicit.rds

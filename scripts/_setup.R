@@ -37,6 +37,7 @@ pacman::p_load(
   easystats,
   emmeans,
   ggbeeswarm,
+  patchwork,
   # ---
   tidyverse  # modern R ecosystem
 )
