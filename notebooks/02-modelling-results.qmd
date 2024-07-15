@@ -1,0 +1,266 @@
+---
+title: Modelling results
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(here)
+source(here("scripts/brms-models.R"))
+```
+
+:::: {.content-visible when-format="html"}
+::: {.callout-note collapse="true"}
+# Packages and setup
+```r
+{{< include ../scripts/_setup.R >}}
+```
+:::
+::::
+
+# Implicit task figures
+
+```{r}
+summary(fit_8)
+```
+
+
+```{r}
+#| label: estimated-means-fit-8
+
+emmeans_8 <- 
+  emmeans(fit_8, c("aphantasia", "congruence"), epred = TRUE) |> 
+  summary(point.est = median) |> 
+  as_tibble() |> 
+  mutate(across(3:5, ~.*1000)) |>
+  rename(median = emmean)
+```
+
+```{r}
+subj_means_8 <-
+  df_i_rt |> 
+  group_by(subjectid, aphantasia, congruence) |>
+  reframe(rt = median(rt)*1000)
+```
+
+Without individual subject lines:
+
+```{r}
+#| label: fig-8
+#| fig-width: 9
+#| fig-height: 6
+
+dw <- .4
+
+subj_means_8 |> 
+  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
+  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
+  geom_violinhalf(
+    trim = TRUE,
+    flip = c(1, 2),
+    alpha = .5,
+    scale = "width",
+    position = position_dodge(width = dw),
+    show.legend = FALSE
+  ) +
+  geom_quasirandom(
+    color = "white",
+    pch = 21,
+    width = .05,
+    size = 1.8,
+    alpha = .6,
+    show.legend = FALSE,
+    dodge.width = .4
+  ) +
+  # group median lines
+  geom_line(
+    data = emmeans_8,
+    aes(y = median, group = aphantasia),
+    position = position_dodge(width = dw),
+    size = 1,
+    show.legend = FALSE
+  ) +
+  geom_errorbar(
+    data = emmeans_8,
+    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
+    position = position_dodge(width = dw),
+    width = 0,
+    linewidth = 1,
+    color = "black",
+    show.legend = FALSE
+  ) +
+  geom_point2(
+    data = emmeans_8,
+    aes(y = median),
+    position = position_dodge(width = dw),
+    size = 3,
+    shape = 21,
+    stroke = 1,
+    color = "black"
+  ) +
+  labs(x = NULL, fill = NULL) +
+  scale_y_continuous(
+    name = "Response time (ms)",
+    breaks = breaks_pretty()
+  ) +
+  theme(
+    axis.ticks.y = element_line(linewidth = 0.5),
+    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
+    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95"),
+    legend.position = "top"
+  )
+```
+
+With individual subject lines:
+
+```{r}
+#| label: fig-8-with
+#| fig-width: 10
+#| fig-height: 6
+
+alpha_subj <- .3
+nudge <- .11
+
+subj_means_8 |> 
+  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
+  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
+  geom_violinhalf(
+    trim = TRUE,
+    flip = c(1, 2),
+    alpha = .5,
+    scale = "width",
+    position = position_dodge(width = dw),
+    show.legend = FALSE
+  ) +
+  geom_quasirandom(
+    color = "white",
+    pch = 21,
+    width = .05,
+    size = 1.8,
+    alpha = .6,
+    show.legend = FALSE,
+    dodge.width = .4
+  ) +
+  # individual subject lines
+  geom_line(
+    data = subj_means_8 |> filter(aphantasia == "Aphantasia"),
+    aes(group = interaction(subjectid,aphantasia)),
+    position = position_nudge(nudge),
+    alpha = alpha_subj,
+    show.legend = FALSE
+  ) +
+    geom_line(
+    data = subj_means_8 |> filter(aphantasia == "Control"),
+    aes(group = interaction(subjectid, aphantasia)),
+    position = position_nudge(-nudge),
+    alpha = alpha_subj,
+    show.legend = FALSE
+  ) +
+  # # group median lines
+  # geom_line(
+  #   data = emmeans_8,
+  #   aes(y = median, group = aphantasia),
+  #   position = position_dodge(width = dw),
+  #   size = 1,
+  #   show.legend = FALSE
+  # ) +
+  geom_errorbar(
+    data = emmeans_8,
+    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
+    position = position_dodge(width = dw),
+    width = 0,
+    linewidth = 1,
+    color = "black",
+    show.legend = FALSE
+  ) +
+  geom_point2(
+    data = emmeans_8,
+    aes(y = median),
+    position = position_dodge(width = dw),
+    size = 3,
+    shape = 21,
+    stroke = 1,
+    color = "black"
+  ) +
+  labs(x = NULL, fill = NULL) +
+  scale_y_continuous(
+    name = "Response time (ms)",
+    breaks = breaks_pretty()
+  ) +
+  theme(
+    axis.ticks.y = element_line(linewidth = 0.5),
+    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
+    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95"),
+    legend.position = "top"
+  )
+```
+
+```{r}
+#| label: fig-8-zoom
+#| fig-width: 10
+#| fig-height: 6
+
+subj_means_8 |> 
+  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
+  geom_line(
+    data = emmeans_8,
+    aes(y = median, group = aphantasia),
+    position = position_dodge(width = .5),
+    size = 1.5,
+    show.legend = FALSE
+  ) +
+  geom_errorbar(
+    data = emmeans_8,
+    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
+    position = position_dodge(width = .5),
+    width = 0,
+    linewidth = 1,
+    color = "black",
+    show.legend = FALSE
+  ) +
+  geom_point2(
+    data = emmeans_8,
+    aes(y = median),
+    position = position_dodge(width = .5),
+    size = 5,
+    shape = 21,
+    stroke = 1,
+    color = "black"
+  ) +
+  labs(x = NULL, fill = NULL) +
+  scale_y_continuous(
+    name = "Response time (ms)",
+    breaks = breaks_pretty(n = 8)
+  ) +
+  theme(
+    axis.text.y = element_text(size = 10),
+    # axis.ticks.y = element_line(linewidth = 0.5),
+    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
+    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95"),
+    legend.position = "top"
+  )
+```
+
+# Explicit task figures
+
+
+
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+```{r}
+#| label: session-information
+#| echo: false
+
+cat("═════════════════════════════════════════════════════════════════════════")
+cat("Session information for reproducibility:")
+report_system(session = sessionInfo())
+cat("Packages used:")
+report_packages(session = sessionInfo())
+cat("═════════════════════════════════════════════════════════════════════════")
+```
+
+

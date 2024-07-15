@@ -1,5 +1,5 @@
 ---
-title: Preprocessing report
+title: Template
 ---
 
 ```{r}

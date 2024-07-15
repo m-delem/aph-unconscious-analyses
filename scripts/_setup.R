@@ -34,6 +34,9 @@ pacman::p_load(
   simr,
   readxl,
   openxlsx,
+  easystats,
+  emmeans,
+  ggbeeswarm,
   # ---
   tidyverse  # modern R ecosystem
 )

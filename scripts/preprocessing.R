@@ -5,7 +5,7 @@ source(here("scripts/_setup.R"))
 # Questionnaires
 df_questionnaires <- 
   read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
+    here("data/data-raw/priming-data-raw.xlsx"),
     sheet = "data_questionnaires"
   ) |> 
   set_variable_labels(
@@ -23,7 +23,7 @@ df_questionnaires <-
 
 df_e_acc <- 
   read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
+    here("data/data-raw/priming-data-raw.xlsx"),
     sheet = "data_explicit"
   ) |>
   clean_variables() |> # see _functions.R
@@ -64,7 +64,7 @@ df_e_rt <-
 
 df_i_acc <- 
   read_excel(
-    "data/data-raw/priming-data-raw.xlsx",
+    here("data/data-raw/priming-data-raw.xlsx"),
     sheet = "data_implicit"
   ) |> 
   clean_variables() |>
@@ -104,7 +104,7 @@ write.xlsx(
     "data_explicit_preprocessed" = df_e_acc,
     "data_explicit_no_errors" = df_e_rt
   ),
-  "data/data-transformed/priming-data-preprocessed.xlsx",
+  here("data/data-transformed/priming-data-preprocessed.xlsx"),
   asTable = TRUE,
   colNames = TRUE,
   colWidths = "auto",
