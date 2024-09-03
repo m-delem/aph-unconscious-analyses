@@ -1,10 +1,13 @@
 ---
 title: Preprocessing report
+subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+eval: false
 ---
 
 ```{r}
 #| label: setup
 #| include: false
+#| eval: true
 
 library(here)
 source(here("scripts/_setup.R"))
@@ -27,9 +30,9 @@ The code for the outlier detection procedure described in the manuscript can be 
 Down below is the code for the outlier selection procedure described in the manuscript.
 :::
 
-
 ```{r}
 #| label: preparing-rt-data
+#| code-summary: Preparing the data for the outlier detection procedure
 
 # ═══ Accuracy outliers analysis ═══════════════════════════════════════════════
 
@@ -43,7 +46,7 @@ df_0i <- df_implicit |>
 
 ```{r}
 #| label: listing-error-rates
-#| output: false
+#| code-summary: Listing error rates per subject
 
 # ─── Listing error rates per subject ───
 list(
@@ -59,7 +62,7 @@ list(
       ungroup() |>
       mutate(
         n_tot = max(n),
-        prop = (n_tot - n) / n_tot * 100  # analyzing the error rate per subject
+        prop = (n_tot - n) / n_tot * 100  # analysing the error rate per subject
       ) %>%
       arrange(desc(prop)) |>
       select(1, 5)
@@ -69,7 +72,7 @@ list(
 
 ```{r}
 #| label: removing-errors
-#| output: false
+#| code-summary: Removing error trials and irrelevant variables
 
 # ─── Removing incorrect trials and task-wise accuracy outliers ───
 df_1e_out <-
@@ -114,7 +117,7 @@ df_1i <-
 
 ```{r}
 #| label: removing-extreme-trials
-#| output: false
+#| code-summary: Removing extreme RTs
 
 # ═══ Broad RT outlier trials removal ════════════════════════════════════
 
@@ -131,7 +134,7 @@ df_2i <-
 
 ```{r}
 #| label: rt-means-table
-#| output: false
+#| code-summary: Creating a table with RT means
 
 # ═══ RT means table - Both tasks ══════════════════════════════════════════════
 
@@ -148,7 +151,7 @@ df_rt <-
 
 ```{r}
 #| label: detecting-aberrant-means
-#| output: false
+#| code-summary: Detecting outliers in the RT means
 
 # ═══ Aberrant RT means outliers removal ═══════════════════════════════════════
 
@@ -174,7 +177,7 @@ df_2i |>
 
 ```{r}
 #| label: removing-aberrant-means
-#| output: false
+#| code-summary: Removing outliers in the RT means
 
 # ─── Removing specific outliers ───
 
@@ -207,7 +210,7 @@ df_3i <-
 
 ```{r}
 #| label: preparing-correlations-data
-#| output: false
+#| code-summary: Preparing the data for the correlation analysis
 
 # ─── Preparing tables for correlation ───
 congruence_effects_emm <-
@@ -233,7 +236,7 @@ congruence_effects_emm <-
 
 ```{r}
 #| label: filtering-extreme-groups
-#| output: false
+#| code-summary: Creating extreme groups
 
 df_3ex <-
   df_3e |> 
@@ -254,27 +257,27 @@ df_3ix |>
 
 
 
-
-
-
-
-
-
+:::: {.content-visible when-format="html"}
 
 &nbsp;
 &nbsp;
 &nbsp;
+
+::: {.callout-note collapse="true"}
+# Session information for reproducibility
 
 ```{r}
 #| label: session-information
 #| echo: false
+#| eval: true
 
 cat("═════════════════════════════════════════════════════════════════════════")
-cat("Session information for reproducibility:")
 report_system(session = sessionInfo())
 cat("Packages used:")
 report_packages(session = sessionInfo())
 cat("═════════════════════════════════════════════════════════════════════════")
 ```
+:::
+::::
 
 

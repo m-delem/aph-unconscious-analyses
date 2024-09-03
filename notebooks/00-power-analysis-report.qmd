@@ -1,5 +1,6 @@
 ---
 title: Power analysis report
+subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
 ---
 
 ```{r}
@@ -19,7 +20,7 @@ source(here("scripts/_setup.R"))
 :::
 ::::
 
-### Rationale
+# Rationale
 
 We hypothesised that difference in reaction times (RT) between congruent and incongruent trials (the congruence effect) in the tasks would be modulated by the visual imagery ability of participants, and therefore that we would observe between-group differences in the magnitude of this effect. In a statistical model with categorical predictors, evidence in favour of our hypothesis would be provided by a significant two-way interaction between Group and Congruence condition. Estimating the statistical power to capture such an effect, given an experimental design, a sample size and an effect size, requires simulations from a model close to the one that will be used for the analysis of real data, as well as assumptions about the structure of data. The power estimation procedure requires 3 steps:
 
@@ -31,7 +32,7 @@ We hypothesised that difference in reaction times (RT) between congruent and inc
 
 Steps 2 and 3 are then repeated as many times as necessary to reach a desired precision of estimation. The proportion of synthetic datasets for which the effect of interest is significant is an estimation of power. Steps 2 and 3 can also be repeated for a range of effect sizes, if the expected effect size is not known exactly which is what we have done here. We detail and justify below every assumption made for the generative model.
 
-### Generative model
+# Generative model
 
 In real datasets, the distributions of RTs are right-skewed and can be modelled with transformations using Gamma or inverse Gaussian distributions. However, such a modelling choice is only an approximation as RTs do not follow exactly any distribution of the exponential family for which generalized models can be fitted. It is difficult to evaluate the impact of such approximation on type I and type II errors. Thus, for power calculation, we generated normally distributed RT and modelled them with a regular mixed model, which simplifies the model parametrization as well as alleviates the computational burden.
 
@@ -149,11 +150,11 @@ model <- makeLmer(
   )
 ```
 
-### Simulations
+# Simulations
 
 - Effect sizes: For the interaction Group x Congruence, the effect size can be defined as the double difference (aphantasics - controls) x (congruent - incongruent). Assuming, based on previous works, that the strongest difference would not exceed 50-60ms, and that differences below 10ms would hardly be meaningful, we ran simulations for differences between 10 and 60ms, by steps of 5ms. As the power reached the ceiling of 100% after 40ms effect sizes, we report here the results up to this size. 
 
-- Number of simulations: For each effect size, we ran as many simulations as were needed to obtain a confidence interval below ±10 points around the mean. Going by steps of 50, we eventually ran 200 simulations for each effect size. These simulations ran for more than 8 hours, therefore their results are stored in `.RDS` R objects for ease of access: `data/r-data-structures/power-analyses-list.RDS` and `data/r-data-structures/power-analyses-table.RDS`. [They do not run automatically when rendering this `.qmd` file.]{.content-visible when-format="html"}
+- Number of simulations: For each effect size, we ran as many simulations as were needed to obtain a confidence interval below ±10 points around the mean. Going by steps of 50, we eventually ran 200 simulations for each effect size. These simulations ran for more than 8 hours, therefore their results are stored in `.RDS` R objects for ease of access: `data/r-data-structures/power-analyses-list.RDS` and `data/r-data-structures/power-analyses-table.RDS`. [They do not run automatically when rendering the `.qmd` file.]{.content-visible when-format="html"}
 
 ```{r}
 #| label: simulations
@@ -205,7 +206,7 @@ nsim <- 200
 parallel::stopCluster(cl = parallel_cluster)
 ```
 
-### Results
+# Results
 
 The analysis yielded a power of 82% starting at effect sizes around 25ms, going up to 91% at 30ms and 97% at 35ms. Every effect size equal and above 40ms reached a ceiling of 100% power. The complete results are summarized in @supptbl-simulations-table and @suppfig-simulations-plot.
 
@@ -294,25 +295,29 @@ simulations_table |>
   theme(panel.grid.major = element_line())
 ```
 
-![Results of the power analysis using simulations. 200 simulations have been computed for each effect size.](../figures/power-analysis.png){#fig-simulations-plot}
+![Results of the power analysis using simulations. 200 simulations have been computed for each effect size.](../figures/power-analysis.png){#suppfig-simulations-plot}
 
 
 
+:::: {.content-visible when-format="html"}
 
 &nbsp;
 &nbsp;
 &nbsp;
+
+::: {.callout-note collapse="true"}
+# Session information for reproducibility
 
 ```{r}
 #| label: session-information
 #| echo: false
 
 cat("═════════════════════════════════════════════════════════════════════════")
-cat("Session information for reproducibility:")
 report_system(session = sessionInfo())
 cat("Packages used:")
 report_packages(session = sessionInfo())
 cat("═════════════════════════════════════════════════════════════════════════")
 ```
-
+:::
+::::
 

@@ -1,5 +1,6 @@
 ---
 title: Modelling results
+subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
 ---
 
 ```{r}
@@ -7,8 +8,7 @@ title: Modelling results
 #| include: false
 
 library(here)
-source(here("scripts/preprocessing.R"))
-# source(here("scripts/brms-models.R"))
+source(here("scripts/00-preprocessing.R"))
 ```
 
 :::: {.content-visible when-format="html"}
@@ -20,495 +20,289 @@ source(here("scripts/preprocessing.R"))
 :::
 ::::
 
-# Implicit task
+# Questionnaires analyses
 
-## Summary
 
+
+# Accuracy analyses
+
+
+
+# Response Times analyses
+
+## Rationale
+
+To account for the non-normal, positively skewed distributions of the RTs, we fitted Generalized Linear Mixed Models (GLMMs) with inverse Gaussian distributions. The models were implemented in the `lme4` R package and integrated in `tidymodels` workflows using the package `multilevelmod`. Models with Gamma and Gaussian distributions were also fitted and compared with the AIC and BIC to ensure that we chose the best distribution available. 
+
+The models included the ***Group*** (aphantasic, control), ***Congruence*** condition (congruent or incongruent) and ***Color*** condition (color or uncolored) along with all their two and three way interactions as fixed categorical predictors, while ***participants*** have been included as grouping factors (i.e. "random effects"). The random effect structure was chosen by fitting and comparing models with every possible combination of distribution and structure (intercept by participant, congruence or color, slope by participant on congruence and/or color) aiming for the best balance between goodness of fit and parsimony. Complex random-effects structures including various slopes on the factors failed to converge to stable and reliable estimates, hence the optimal models chosen included a single by-participant random intercept.
+
+## Model fitting
+
+The formula of the model fitted is $RT \sim (aphantasia + congruence + color)^3 + (1|subjectid)$. [See the HTML version for the code and details.]{.content-hidden when-format="html"}
+
+::: {.content-visible when-format="html"}
 ```{r}
-#| label: summary-im
+#| label: model-fitting
+#| code-fold: false
 
-summary(fit_implicit)
-1 / hypothesis(fit_implicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio # BF10 = 1.46
-hypothesis(fit_implicit, "aphantasia1:congruence1 > 0") # BF+ = 110
+model_formula <- rt ~ (aphantasia + congruence + color)^3 + (1|subjectid)
+
+fit_implicit <- 
+  glmer(
+    formula = model_formula,
+    data = df_i_rt,
+    family = inverse.gaussian(link = "identity"),
+    control = glmerControl(optimizer = "bobyqa")
+  )
+
+fit_explicit <- 
+  glmer(
+    formula = model_formula,
+    data = df_e_rt,
+    family = inverse.gaussian(link = "identity"),
+    control = glmerControl(optimizer = "bobyqa")
+  )
 ```
+:::
 
 ## Model diagnostics
 
-```{r}
-#| label: fig-ppc-im
-#| fig-width: 10
-#| fig-height: 5
+The quality checks of the models are displayed in [@suppfig-implicit-checks and @suppfig-explicit-checks]{.content-visible when-format="html"} [@suppfig-implicit-checks-2 and @suppfig-explicit-checks-2]{.content-hidden when-format="html"}.
 
-custom_pp_check(fit_implicit)
-```
+:::: {.content-visible when-format="html"}
+::: {.panel-tabset .column-page-inset}
 
-## Fixed effects
+### Implicit task
 
 ```{r}
-#| label: fig-fixed-im
-#| fig-width: 9
-#| fig-height: 5
-
-plot_fixed_effects(fit_implicit)
-```
-
-## Varying effects
-
-```{r}
-#| label: fig-varying-im
-#| fig-width: 8
+#| label: implicit-checks
+#| fig-width: 14
 #| fig-height: 12
 #| eval: false
 
-plot_varying_effects(fit_implicit, df_i_rt)
+# characteristics to check
+model_checks <- c("pp_check","homogeneity", "vif", "outliers", "qq", "reqq")
+
+check_model(
+  fit_implicit, 
+  checks = model_checks, 
+  detrend = FALSE, 
+  residual_type = "normal"
+  ) |> 
+  plot()
+
+ggsave(here("figures/checks-implicit.png"), dpi = 600)
 ```
 
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the implicit task.](../figures/checks-implicit.png){#suppfig-implicit-checks}
 
-
-## Estimated means
+### Explicit task
 
 ```{r}
-#| label: emmeans-im
+#| label: explicit-checks
+#| fig-width: 14
+#| fig-height: 12
+#| eval: false
 
-emmeans_im <- 
-  emmeans(fit_implicit, c("aphantasia", "congruence"), epred = TRUE) |> 
-  summary(point.est = median) |> 
-  as_tibble() |> 
-  mutate(across(3:5, ~.*1000)) |>
+check_model(
+  fit_explicit, 
+  checks = model_checks, 
+  detrend = FALSE, 
+  residual_type = "normal"
+  ) |> 
+  plot()
+
+ggsave(here("figures/checks-explicit.png"), dpi = 600)
+```
+
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task.](../figures/checks-explicit.png){#suppfig-explicit-checks}
+
+:::
+::::
+
+:::{.content-hidden when-format="html"}
+
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the implicit task.](../figures/checks-implicit.png){#suppfig-implicit-checks-2}
+
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task.](../figures/checks-explicit.png){#suppfig-explicit-checks-2}
+
+:::
+
+
+## Model summaries
+
+:::{#supptbl-glmm-i-summary}
+```{r}
+#| label: summary-implicit
+#| echo: false
+
+model_performance(fit_implicit) |> display()
+
+model_parameters(fit_implicit) |> display()
+```
+
+Performance and estimates of the GLMM fitted on the implicit task data.
+:::
+
+:::{#supptbl-glmm-e-summary}
+```{r}
+#| label: summary-explicit
+#| echo: false
+
+model_performance(fit_explicit) |> display()
+
+model_parameters(fit_explicit) |> display()
+```
+
+Performance and estimates of the GLMM fitted on the explicit task data.
+:::
+
+## Estimated means and contrasts
+
+:::{#supptbl-estimates-implicit}
+```{r}
+#| label: emmeans-implicit
+#| echo: false
+
+emmeans_im <-
+  emmeans(fit_implicit, c("aphantasia", "congruence")) |>
+  summary(point.est = median) |>
+  as_tibble() |>
+  mutate(across(3:7, ~.*1000)) |>
   rename(median = emmean)
 
-emmeans_im
+emmeans_im |> 
+  rename(Group = 1, Condition = 2, "Median (ms)" = median) |>
+  display()
+
+fit_implicit |> 
+  estimate_contrasts(
+    contrast = c("aphantasia", "congruence"), 
+    p_adjust = "none"
+    ) |> 
+  display()
 ```
+
+Estimated means for each group in each congruence condition and contrasts between groups and conditions in the implicit task.
+:::
+
+:::{#supptbl-estimates-explicit}
+```{r}
+#| label: emmeans-explicit
+#| echo: false
+
+emmeans_ex <-
+  emmeans(fit_explicit, c("aphantasia", "congruence")) |>
+  summary(point.est = median) |>
+  as_tibble() |>
+  mutate(across(3:7, ~.*1000)) |>
+  rename(median = emmean)
+
+emmeans_ex |> 
+  rename(Group = 1, Condition = 2, "Median (ms)" = median) |>
+  display()
+
+fit_explicit |> 
+  estimate_contrasts(
+    contrast = c("aphantasia", "congruence"), 
+    p_adjust = "none"
+    ) |> 
+  display()
+```
+
+Estimated means for each group in each congruence condition and contrasts between groups and conditions in the explicit task.
+:::
 
 ## Visualisations
 
+The figures below are also displayed in the main article. [See the HTML version for the code and details.] {.content-hidden when-format="html"}
+
 ```{r}
 #| label: fig-im
-#| fig-width: 9
-#| fig-height: 6
+#| fig-cap: Subject means and model-estimated means per group and condition in the implicit task.
+#| fig-width: 18
+#| fig-height: 7
 
 subj_means_im <-
   df_i_rt |> 
   group_by(subjectid, aphantasia, congruence) |>
-  reframe(rt = median(rt)*1000)
+  reframe(rt = mean(rt)*1000)
 
-dw <- .4
-alpha_subj <- .3
-nudge <- .11
-
-fig_im <-
-  subj_means_im |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
-  geom_violinhalf(
-    trim = TRUE,
-    flip = c(1, 2),
-    alpha = .5,
-    scale = "width",
-    position = position_dodge(width = dw),
-    show.legend = FALSE
-  ) +
-  # individual subject lines
-  geom_line(
-    data = subj_means_im |> filter(aphantasia == "Aphantasia"),
-    aes(group = interaction(subjectid,aphantasia)),
-    position = position_nudge(nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  geom_line(
-    data = subj_means_im |> filter(aphantasia == "Control"),
-    aes(group = interaction(subjectid, aphantasia)),
-    position = position_nudge(-nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  # individual subject points
-  geom_quasirandom(
-    color = "white",
-    pch = 21,
-    width = .05,
-    size = 1.8,
-    alpha = .6,
-    dodge.width = .4,
-    show.legend = FALSE
-  ) +
-  # group median lines
-  geom_line(
-    data = emmeans_im,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = dw),
-    linewidth = 1,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_im,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = dw),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_im,
-    aes(y = median),
-    position = position_dodge(width = dw),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, fill = NULL) +
-  scale_y_continuous(
-    name = "Response time (ms)",
-    breaks = breaks_pretty()
-  ) +
+(
+  plot_models_full(subj_means_im, emmeans_im, y_min = 400, y_max = 1110, size = 4) +
+  plot_models_zoomed(subj_means_im, emmeans_im, size = 4) &
   theme(
-    axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
   )
-
-fig_im
-```
-
-```{r}
-#| label: fig-im-zoom
-#| fig-width: 9
-#| fig-height: 5
-
-fig_im_zoom <-
-  subj_means_im |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  geom_line(
-    data = emmeans_im,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = .5),
-    linewidth = 1.5,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_im,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = .5),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_im,
-    aes(y = median),
-    position = position_dodge(width = .5),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, y = NULL, fill = NULL) +
-  scale_y_continuous(
-    breaks = breaks_pretty(n = 8)
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    # axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_im_zoom
-```
-
-```{r}
-#| label: fig-implicit-duo
-#| fig-width: 18
-#| fig-height: 7
-
-fig_im_duo <- (
-  fig_im + fig_im_zoom &
-    theme(
-      legend.position = "top",
-      legend.title = element_blank(),
-      legend.text = element_text(size = 20),
-      legend.margin = margin(0, 150, 25, 0),
-      axis.title.y = element_text(size = 20),
-      axis.text.x = element_text(size = 18)
-    )
-  ) +
+) +
   plot_layout(
     guides = "collect",
     widths = c(1, 1.2)
   )
 
-fig_im_duo
+# ggsave(here("figures/model-implicit.png"), dpi = 600)
 ```
-
-```{r}
-#| label: saving-fig-im-duo
-#| eval: false
-
-ggsave(
-  here("figures/fig-implicit-duo.png"),
-  fig_im_duo,
-  width = 18,
-  height = 7,
-  dpi = 300
-)
-```
-
-
-# Explicit task
-
-## Summary
-
-```{r}
-#| label: summary-ex
-
-summary(fit_explicit)
-1 / hypothesis(fit_explicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio # BF10 = 2.05
-hypothesis(fit_explicit, "aphantasia1:congruence1 > 0") # BF+ = 160
-```
-
-## Model diagnostics
-
-```{r}
-#| label: fig-ppc-ex
-#| fig-width: 10
-#| fig-height: 5
-
-custom_pp_check(fit_explicit)
-```
-
-## Fixed effects
-
-```{r}
-#| label: fig-fixed-ex
-#| fig-width: 9
-#| fig-height: 5
-
-plot_fixed_effects(fit_explicit)
-```
-
-## Varying effects
-
-```{r}
-#| label: fig-varying-ex
-#| fig-width: 8
-#| fig-height: 12
-#| eval: false
-
-plot_varying_effects(fit_explicit, df_e_rt)
-```
-
-## Estimated means
-
-```{r}
-#| label: emmeans-ex
-
-emmeans_ex <- 
-  emmeans(fit_explicit, c("aphantasia", "congruence"), epred = TRUE) |> 
-  summary(point.est = median) |> 
-  as_tibble() |> 
-  mutate(across(3:5, ~.*1000)) |>
-  rename(median = emmean)
-
-emmeans_ex
-```
-
-## Visualisations
 
 ```{r}
 #| label: fig-ex
-#| fig-width: 9
-#| fig-height: 6
+#| fig-cap: Subject means and model-estimated means per group and condition in the explicit task.
+#| fig-width: 18
+#| fig-height: 7
 
 subj_means_ex <-
   df_e_rt |> 
   group_by(subjectid, aphantasia, congruence) |>
-  reframe(rt = median(rt)*1000)
+  reframe(rt = mean(rt)*1000)
 
-dw <- .4
-alpha_subj <- .3
-nudge <- .11
-
-fig_ex <-
-  subj_means_ex |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
-  geom_violinhalf(
-    trim = TRUE,
-    flip = c(1, 2),
-    alpha = .5,
-    scale = "width",
-    position = position_dodge(width = dw),
-    show.legend = FALSE
-  ) +
-  # individual subject lines
-  geom_line(
-    data = subj_means_ex |> filter(aphantasia == "Aphantasia"),
-    aes(group = interaction(subjectid,aphantasia)),
-    position = position_nudge(nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  geom_line(
-    data = subj_means_ex |> filter(aphantasia == "Control"),
-    aes(group = interaction(subjectid, aphantasia)),
-    position = position_nudge(-nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  # individual subject points
-  geom_quasirandom(
-    color = "white",
-    pch = 21,
-    width = .05,
-    size = 1.8,
-    alpha = .6,
-    dodge.width = .4,
-    show.legend = FALSE
-  ) +
-  # group median lines
-  geom_line(
-    data = emmeans_ex,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = dw),
-    linewidth = 1,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_ex,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = dw),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_ex,
-    aes(y = median),
-    position = position_dodge(width = dw),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, fill = NULL) +
-  scale_y_continuous(
-    name = "Response time (ms)",
-    breaks = breaks_pretty()
-  ) +
+(
+  plot_models_full(subj_means_ex, emmeans_ex, y_min = 350, y_max = 1450, size = 4) +
+  plot_models_zoomed(subj_means_ex, emmeans_ex, size = 4) &
   theme(
-    axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
   )
-
-fig_ex
-```
-
-```{r}
-#| label: fig-ex-zoom
-#| fig-width: 9
-#| fig-height: 5
-
-fig_ex_zoom <-
-  subj_means_ex |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  geom_line(
-    data = emmeans_ex,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = .5),
-    linewidth = 1.5,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_ex,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = .5),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_ex,
-    aes(y = median),
-    position = position_dodge(width = .5),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, y = NULL, fill = NULL) +
-  scale_y_continuous(
-    breaks = breaks_pretty(n = 8)
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    # axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_ex_zoom
-```
-
-```{r}
-#| label: fig-explicit-duo
-#| fig-width: 18
-#| fig-height: 7
-
-fig_ex_duo <- (
-  fig_ex + fig_ex_zoom &
-    theme(
-      legend.position = "top",
-      legend.title = element_blank(),
-      legend.text = element_text(size = 20),
-      legend.margin = margin(0, 150, 25, 0),
-      axis.title.y = element_text(size = 20),
-      axis.text.x = element_text(size = 18)
-    )
-  ) +
+) +
   plot_layout(
     guides = "collect",
     widths = c(1, 1.2)
   )
 
-fig_ex_duo
+# ggsave(here("figures/model-explicit.png"), dpi = 600)
 ```
 
-```{r}
-#| label: saving-fig-ex-duo
-#| eval: false
-
-ggsave(
-  here("figures/fig-explicit-duo.png"),
-  fig_ex_duo,
-  width = 18,
-  height = 7,
-  dpi = 300
-)
-```
+# Correlational analyses
 
 
+
+:::: {.content-visible when-format="html"}
 
 &nbsp;
 &nbsp;
 &nbsp;
+
+::: {.callout-note collapse="true"}
+# Session information for reproducibility
 
 ```{r}
 #| label: session-information
 #| echo: false
 
 cat("═════════════════════════════════════════════════════════════════════════")
-cat("Session information for reproducibility:")
 report_system(session = sessionInfo())
 cat("Packages used:")
 report_packages(session = sessionInfo())
 cat("═════════════════════════════════════════════════════════════════════════")
 ```
+:::
+::::
 
 
