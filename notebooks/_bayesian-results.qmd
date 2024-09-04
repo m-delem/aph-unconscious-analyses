@@ -1,6 +1,7 @@
 ---
 title: Bayesian Modelling results
 subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+format: html
 ---
 
 ```{r}
@@ -8,7 +9,8 @@ subtitle: "Are there unconscious visual images in aphantasia? Development of an 
 #| include: false
 
 library(here)
-source(here("scripts/02-brms-models.R"))
+source(here("scripts/00-preprocessing.R"))
+source(here("scripts/_bayesian-setup.R"))
 ```
 
 :::: {.content-visible when-format="html"}
@@ -20,20 +22,111 @@ source(here("scripts/02-brms-models.R"))
 :::
 ::::
 
-# Implicit task
+# Response Times analyses
 
-## Summary
+## Model fitting
 
 ```{r}
-#| label: summary-im
+#| label: model-fitting
+#| code-fold: false
+#| output: false
 
+# Parallel processing variables -------------------------------------------
+
+# detecting the number of cores to use
+n_cores <- parallel::detectCores() - 4
+
+# defining the number of iterations per chain (+ 1000 warm-up)
+n_iter <- ceiling(40000 / n_cores) + 1000
+
+
+options(cmdstanr_warn_inits = FALSE)
+
+
+# Model formula -----------------------------------------------------------
+
+formula <- bf(rt ~ aphantasia * congruence * color + (1 | subjectid))
+
+# Priors ------------------------------------------------------------------
+
+get_prior(formula, data = df_i_rt, family = shifted_lognormal())
+# need to define better priors for the intercept, sigma, b, and sd
+
+prior <- c(
+  prior(normal(-1, 0.5), class = 'Intercept'),  # around exp(-1) = 0.36 secs
+  prior(normal(0.4, 0.3), class = 'sigma'), # SD of individual rts in log-units
+  prior(normal(0, 0.3), class = 'b'), # around exp(-1) - exp(-1 + 0.3) = 150 ms 
+  prior(normal(0.3, 0.1), class = 'sd')  # some variability between participants
+)
+
+# Implicit task model -----------------------------------------------------
+
+fit_implicit <- 
+  brm(
+    formula = formula,
+    data = df_i_rt,
+    family = shifted_lognormal(),
+    prior = prior,
+    sample_prior = TRUE,
+    chains = n_cores,
+    cores  = n_cores,
+    iter   = n_iter,
+    warmup = 1000,
+    refresh = 5,
+    backend = "cmdstanr",
+    stan_model_args = list(stanc_options = list("O1")),
+    save_pars = save_pars(all = TRUE),
+    file = here("data/r-data-structures/brms-model-implicit.rds"),
+    file_compress = "xz"
+  )
+
+
+# Explicit task model -----------------------------------------------------
+
+
+fit_explicit <- 
+  brm(
+    formula = formula,
+    data = df_e_rt,
+    family = shifted_lognormal(),
+    prior = prior,
+    sample_prior = TRUE,
+    chains = n_cores,
+    cores  = n_cores,
+    iter   = n_iter,
+    warmup = 1000,
+    refresh = 5,
+    backend = "cmdstanr",
+    stan_model_args = list(stanc_options = list("O1")),
+    save_pars = save_pars(all = TRUE),
+    file = here("data/r-data-structures/brms-model-explicit.rds"),
+    file_compress = "xz"
+  )
+```
+
+## Model diagnostics
+
+```{r}
+#| label: fig-ppc
+#| fig-width: 10
+#| fig-height: 5
+
+custom_pp_check(fit_implicit)
+custom_pp_check(fit_explicit)
+```
+
+
+## Model summaries
+
+```{r}
+#| label: summary
+
+# Implicit task -----------------------------------------------------------
 summary(fit_implicit) 
-1 / hypothesis(fit_implicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio 
-# BF10 = 1.46 with full model
-# BF10 = 3.80 with intercept only
 hypothesis(fit_implicit, "aphantasia1:congruence1 > 0") 
-# BF+ = 110 with full model
-# BF+ = 312 with intercept only
+# BF+ = 312
+1 / hypothesis(fit_implicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio 
+# BF10 = 3.80
 
 emmeans(
   fit_implicit, 
@@ -41,45 +134,39 @@ emmeans(
   epred = TRUE) |>
   pairs() |> 
   summary(point.est = median)
+
+# Explicit task -----------------------------------------------------------
+summary(fit_explicit)
+hypothesis(fit_explicit, "aphantasia1:congruence1 > 0") 
+# BF+ = 1052
+1 / hypothesis(fit_explicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio  
+# BF10 = 7.36
+
+emmeans(
+  fit_explicit, 
+  c("aphantasia", "congruence"), 
+  epred = TRUE) |>
+  pairs() |> 
+  summary(point.est = median)
 ```
 
-## Model diagnostics
-
-```{r}
-#| label: fig-ppc-im
-#| fig-width: 10
-#| fig-height: 5
-
-custom_pp_check(fit_implicit)
-```
 
 ## Fixed effects
 
 ```{r}
-#| label: fig-fixed-im
+#| label: fig-fixed
 #| fig-width: 9
 #| fig-height: 5
 
 plot_fixed_effects(fit_implicit)
+plot_fixed_effects(fit_explicit)
 ```
-
-## Varying effects
-
-```{r}
-#| label: fig-varying-im
-#| fig-width: 8
-#| fig-height: 12
-#| eval: false
-
-plot_varying_effects(fit_implicit, df_i_rt)
-```
-
 
 
 ## Estimated means
 
 ```{r}
-#| label: emmeans-im
+#| label: emmeans
 
 emmeans_im <- 
   emmeans(fit_implicit, c("aphantasia", "congruence"), epred = TRUE) |> 
@@ -89,233 +176,6 @@ emmeans_im <-
   rename(median = emmean)
 
 emmeans_im
-```
-
-## Visualisations
-
-```{r}
-#| label: fig-im
-#| fig-width: 9
-#| fig-height: 6
-
-subj_means_im <-
-  df_i_rt |> 
-  group_by(subjectid, aphantasia, congruence) |>
-  reframe(rt = median(rt)*1000)
-
-dw <- .4
-alpha_subj <- .3
-nudge <- .11
-
-fig_im <-
-  subj_means_im |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
-  geom_violinhalf(
-    trim = TRUE,
-    flip = c(1, 2),
-    alpha = .5,
-    scale = "width",
-    position = position_dodge(width = dw),
-    show.legend = FALSE
-  ) +
-  # individual subject lines
-  geom_line(
-    data = subj_means_im |> filter(aphantasia == "Aphantasia"),
-    aes(group = interaction(subjectid,aphantasia)),
-    position = position_nudge(nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  geom_line(
-    data = subj_means_im |> filter(aphantasia == "Control"),
-    aes(group = interaction(subjectid, aphantasia)),
-    position = position_nudge(-nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  # individual subject points
-  geom_quasirandom(
-    color = "white",
-    pch = 21,
-    width = .05,
-    size = 1.8,
-    alpha = .6,
-    dodge.width = .4,
-    show.legend = FALSE
-  ) +
-  # group median lines
-  geom_line(
-    data = emmeans_im,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = dw),
-    linewidth = 1,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_im,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = dw),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_im,
-    aes(y = median),
-    position = position_dodge(width = dw),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, fill = NULL) +
-  scale_y_continuous(
-    name = "Response time (ms)",
-    breaks = breaks_pretty()
-  ) +
-  theme(
-    axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_im
-```
-
-```{r}
-#| label: fig-im-zoom
-#| fig-width: 9
-#| fig-height: 5
-
-fig_im_zoom <-
-  subj_means_im |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  geom_line(
-    data = emmeans_im,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = .5),
-    linewidth = 1.5,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_im,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = .5),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_im,
-    aes(y = median),
-    position = position_dodge(width = .5),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, y = NULL, fill = NULL) +
-  scale_y_continuous(
-    breaks = breaks_pretty(n = 8)
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    # axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_im_zoom
-```
-
-```{r}
-#| label: fig-implicit-duo
-#| fig-width: 18
-#| fig-height: 7
-
-fig_im_duo <- (
-  fig_im + fig_im_zoom &
-    theme(
-      legend.position = "top",
-      legend.title = element_blank(),
-      legend.text = element_text(size = 20),
-      legend.margin = margin(0, 150, 25, 0),
-      axis.title.y = element_text(size = 20),
-      axis.text.x = element_text(size = 18)
-    )
-  ) +
-  plot_layout(
-    guides = "collect",
-    widths = c(1, 1.2)
-  )
-
-fig_im_duo
-```
-
-```{r}
-#| label: saving-fig-im-duo
-#| eval: false
-
-ggsave(
-  here("figures/fig-implicit-duo.png"),
-  fig_im_duo,
-  width = 18,
-  height = 7,
-  dpi = 300
-)
-```
-
-
-# Explicit task
-
-## Summary
-
-```{r}
-#| label: summary-ex
-
-summary(fit_explicit)
-1 / hypothesis(fit_explicit, "aphantasia1:congruence1 = 0")$hypothesis$Evid.Ratio # BF10 = 2.05
-hypothesis(fit_explicit, "aphantasia1:congruence1 > 0") # BF+ = 160
-```
-
-## Model diagnostics
-
-```{r}
-#| label: fig-ppc-ex
-#| fig-width: 10
-#| fig-height: 5
-
-custom_pp_check(fit_explicit)
-```
-
-## Fixed effects
-
-```{r}
-#| label: fig-fixed-ex
-#| fig-width: 9
-#| fig-height: 5
-
-plot_fixed_effects(fit_explicit)
-```
-
-## Varying effects
-
-```{r}
-#| label: fig-varying-ex
-#| fig-width: 8
-#| fig-height: 12
-#| eval: false
-
-plot_varying_effects(fit_explicit, df_e_rt)
-```
-
-## Estimated means
-
-```{r}
-#| label: emmeans-ex
 
 emmeans_ex <- 
   emmeans(fit_explicit, c("aphantasia", "congruence"), epred = TRUE) |> 
@@ -330,180 +190,60 @@ emmeans_ex
 ## Visualisations
 
 ```{r}
-#| label: fig-ex
-#| fig-width: 9
-#| fig-height: 6
-
-subj_means_ex <-
-  df_e_rt |> 
-  group_by(subjectid, aphantasia, congruence) |>
-  reframe(rt = median(rt)*1000)
-
-dw <- .4
-alpha_subj <- .3
-nudge <- .11
-
-fig_ex <-
-  subj_means_ex |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  # ggplot(aes(x = aphantasia, y = rt, color = congruence, fill = congruence)) +
-  geom_violinhalf(
-    trim = TRUE,
-    flip = c(1, 2),
-    alpha = .5,
-    scale = "width",
-    position = position_dodge(width = dw),
-    show.legend = FALSE
-  ) +
-  # individual subject lines
-  geom_line(
-    data = subj_means_ex |> filter(aphantasia == "Aphantasia"),
-    aes(group = interaction(subjectid,aphantasia)),
-    position = position_nudge(nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  geom_line(
-    data = subj_means_ex |> filter(aphantasia == "Control"),
-    aes(group = interaction(subjectid, aphantasia)),
-    position = position_nudge(-nudge),
-    alpha = alpha_subj,
-    show.legend = FALSE
-  ) +
-  # individual subject points
-  geom_quasirandom(
-    color = "white",
-    pch = 21,
-    width = .05,
-    size = 1.8,
-    alpha = .6,
-    dodge.width = .4,
-    show.legend = FALSE
-  ) +
-  # group median lines
-  geom_line(
-    data = emmeans_ex,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = dw),
-    linewidth = 1,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_ex,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = dw),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_ex,
-    aes(y = median),
-    position = position_dodge(width = dw),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, fill = NULL) +
-  scale_y_continuous(
-    name = "Response time (ms)",
-    breaks = breaks_pretty()
-  ) +
-  theme(
-    axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_ex
-```
-
-```{r}
-#| label: fig-ex-zoom
-#| fig-width: 9
-#| fig-height: 5
-
-fig_ex_zoom <-
-  subj_means_ex |> 
-  ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-  geom_line(
-    data = emmeans_ex,
-    aes(y = median, group = aphantasia),
-    position = position_dodge(width = .5),
-    linewidth = 1.5,
-    show.legend = FALSE
-  ) +
-  geom_errorbar(
-    data = emmeans_ex,
-    aes(y = median, ymin = lower.HPD, ymax = upper.HPD),
-    position = position_dodge(width = .5),
-    width = 0,
-    linewidth = 1,
-    color = "black",
-    show.legend = FALSE
-  ) +
-  geom_point2(
-    data = emmeans_ex,
-    aes(y = median),
-    position = position_dodge(width = .5),
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black"
-  ) +
-  labs(x = NULL, y = NULL, fill = NULL) +
-  scale_y_continuous(
-    breaks = breaks_pretty(n = 8)
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    # axis.ticks.y = element_line(linewidth = 0.5),
-    panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-    panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-  )
-
-fig_ex_zoom
-```
-
-```{r}
-#| label: fig-explicit-duo
+#| label: fig-im
 #| fig-width: 18
 #| fig-height: 7
 
-fig_ex_duo <- (
-  fig_ex + fig_ex_zoom &
-    theme(
-      legend.position = "top",
-      legend.title = element_blank(),
-      legend.text = element_text(size = 20),
-      legend.margin = margin(0, 150, 25, 0),
-      axis.title.y = element_text(size = 20),
-      axis.text.x = element_text(size = 18)
-    )
-  ) +
+subj_means_im <-
+  df_i_rt |> 
+  group_by(subjectid, aphantasia, congruence) |>
+  reframe(rt = mean(rt)*1000)
+
+(
+  plot_models_full_bayes(subj_means_im, emmeans_im, y_min = 400, y_max = 1110, size = 4) +
+  plot_models_zoomed_bayes(subj_means_im, emmeans_im, size = 4) &
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
+  )
+) +
   plot_layout(
     guides = "collect",
     widths = c(1, 1.2)
   )
-
-fig_ex_duo
 ```
 
 ```{r}
-#| label: saving-fig-ex-duo
-#| eval: false
+#| label: fig-ex
+#| fig-width: 18
+#| fig-height: 7
 
-ggsave(
-  here("figures/fig-explicit-duo.png"),
-  fig_ex_duo,
-  width = 18,
-  height = 7,
-  dpi = 300
-)
+subj_means_ex <-
+  df_e_rt |> 
+  group_by(subjectid, aphantasia, congruence) |>
+  reframe(rt = mean(rt)*1000)
+
+(
+  plot_models_full_bayes(subj_means_ex, emmeans_ex, y_min = 350, y_max = 1450, size = 4) +
+  plot_models_zoomed_bayes(subj_means_ex, emmeans_ex, size = 4) &
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
+  )
+) +
+  plot_layout(
+    guides = "collect",
+    widths = c(1, 1.2)
+  )
 ```
-
 
 
 :::: {.content-visible when-format="html"}

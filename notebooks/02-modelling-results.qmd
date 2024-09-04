@@ -22,6 +22,222 @@ source(here("scripts/00-preprocessing.R"))
 
 # Questionnaires analyses
 
+## Group differences
+
+### Table
+
+::: {#supptbl-questionnaire-results}
+```{r}
+group_effects <- 
+  df_questionnaires |>
+  pivot_longer(
+    cols = c("Implicit effect":"SUIS"),
+    names_to = "questionnaire",
+    values_to = "score"
+  ) |> 
+  group_by(questionnaire) |> 
+  nest() |> 
+  rowwise() |> 
+  mutate(
+    lm = list(
+      lm(score ~ aphantasia, data = data)
+    ),
+    lm_ranked = list(
+      lm(rank(score) ~ aphantasia, data = data)
+    ),
+    ranked_means = list(
+      prepare_means(lm_ranked, questionnaire)
+    ),
+    table = list(
+      generate_model_summary(lm, lm_ranked, questionnaire)
+    )
+  )
+
+bind_rows(group_effects$table) |> display()
+```
+:::
+
+### Plot
+
+```{r}
+# dodge width for all the geoms
+dw <- 1
+# axis text size
+txt <- 14
+# legend text size
+txt_legend <- 12
+
+norm_means <- 
+  df_q_norm |> 
+  group_by(aphantasia) |>
+  reframe(across(VVIQ:SUIS, mean)) |> 
+  pivot_longer(
+    cols = c(VVIQ:SUIS),
+    names_to = "Questionnaire",
+    values_to = "Mean"
+  ) |>
+  mutate(
+    Questionnaire = fct_relevel(
+      Questionnaire, 
+      c("VVIQ", "SUIS", "OSIQ_Object", "OSIQ_Spatial")
+    ))
+
+df_q_norm |> 
+  pivot_longer(
+    cols = c(VVIQ:SUIS),
+    names_to = "Questionnaire",
+    values_to = "Score"
+  ) |>
+  mutate(
+    Questionnaire = fct_relevel(
+      Questionnaire, 
+      c("VVIQ", "SUIS", "OSIQ_Object", "OSIQ_Spatial")
+    )) |> 
+  ggplot(aes(
+    x = Questionnaire, 
+    y = Score, 
+    fill = aphantasia, 
+    color = aphantasia
+    )) +
+  # accentuation of the median line at 0.5
+  geom_hline(
+    yintercept = .5,
+    linetype = 1,
+    color = "grey30",
+    alpha = .2
+  ) +
+  # violin shapes for the distributions and quantiles
+  geom_violin(
+    position = position_dodge(dw),
+    alpha = .1,
+    draw_quantiles = c(.25, .5, .75)
+  ) +
+  # points for means and lines for CIs
+  geom_point(
+    data = norm_means,
+    aes(
+      x = Questionnaire,
+      y = Mean,
+      color = aphantasia
+    ),
+    size = 2,
+    position = position_dodge(dw)
+  ) +
+  # star for significance
+  annotate(
+    geom  = "text",
+    label = "*",
+    color = "black",
+    x = 1,
+    y = .95,
+    size  = 10 
+    ) +
+  # dotted line that separates the different questionnaires
+  geom_vline(
+    aes(xintercept = stage(Questionnaire, after_scale = 1.5)),
+    linetype = 3
+  ) +
+  # star for significance
+  annotate(
+    geom  = "text",
+    label = "*",
+    color = "black",
+    x = 2,
+    y = .95,
+    size  = 10 
+    ) +
+  # dotted line that separates the different questionnaires
+  geom_vline(
+    aes(xintercept = stage(Questionnaire, after_scale = 2.5)),
+    linetype = 3
+  ) +
+  # star for significance
+  annotate(
+    geom  = "text",
+    label = "*",
+    color = "black",
+    x = 3,
+    y = .95,
+    size  = 10 
+    ) +
+  # dotted line that separates the different questionnaires
+  geom_vline(
+    aes(xintercept = stage(Questionnaire, after_scale = 3.5)),
+    linetype = 3
+  ) +
+  # star for significance
+  annotate(
+    geom  = "text",
+    label = "*",
+    color = "black",
+    x = 4,
+    y = .95,
+    # vjust = .1,
+    # hjust = 6,
+    size  = 10 
+    ) 
+```
+
+
+## Congruence effects
+
+### Correlations
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+corr_whole <- 
+  df_questionnaires |> 
+    select(4:10) |>
+    mutate(across(VVIQ:SUIS, rank)) |> 
+    correlation(p_adjust = "none") 
+
+corr_aph <-
+  df_questionnaires |> 
+    select(4:10) |>
+    filter(aphantasia == "yes") |>
+    mutate(across(VVIQ:SUIS, rank)) |> 
+    correlation(p_adjust = "none")
+
+corr_control <-
+  df_questionnaires |> 
+    select(4:10) |>
+    filter(aphantasia == "no") |> 
+    mutate(across(VVIQ:SUIS, rank)) |> 
+    correlation(p_adjust = "none")
+
+corr_whole
+corr_aph
+corr_control
+
+corr_whole |> summary() |> plot() + 
+  labs(title = "Correlation matrix, whole group")
+
+corr_aph |> summary() |> plot() +
+  labs(title = "Correlation matrix, aphantasia group only")
+
+corr_control |> summary() |> plot() +
+  labs(title = "Correlation matrix, control group only")
+```
+
+### Plots 
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+df_questionnaires |> plot_correlations("VVIQ", "Implicit effect")
+df_questionnaires |> plot_correlations("OSIQ_Object", "Implicit effect")
+df_questionnaires |> plot_correlations("SUIS", "Implicit effect")
+df_questionnaires |> plot_correlations("SUIS", "Explicit effect")
+
+# Ranked versions
+df_q_ranked |> plot_correlations("VVIQ", "Implicit effect")
+df_q_ranked |> plot_correlations("OSIQ_Object", "Implicit effect")
+df_q_ranked |> plot_correlations("SUIS", "Implicit effect")
+df_q_ranked |> plot_correlations("SUIS", "Explicit effect")
+```
 
 
 # Accuracy analyses
@@ -91,7 +307,7 @@ check_model(
   ) |> 
   plot()
 
-ggsave(here("figures/checks-implicit.png"), dpi = 600)
+# ggsave(here("figures/checks-implicit.png"), dpi = 600)
 ```
 
 ![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the implicit task.](../figures/checks-implicit.png){#suppfig-implicit-checks}
@@ -112,7 +328,7 @@ check_model(
   ) |> 
   plot()
 
-ggsave(here("figures/checks-explicit.png"), dpi = 600)
+# ggsave(here("figures/checks-explicit.png"), dpi = 600)
 ```
 
 ![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task.](../figures/checks-explicit.png){#suppfig-explicit-checks}

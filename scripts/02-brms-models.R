@@ -1,6 +1,7 @@
 # install.packages("here")
 library(here)
 source(here("scripts/00-preprocessing.R"))
+source(here("scripts/_bayesian-setup.R"))
 
 # Parallel processing variables -------------------------------------------
 
@@ -16,13 +17,7 @@ options(cmdstanr_warn_inits = FALSE)
 
 # Model formula -----------------------------------------------------------
 
-formula <- bf(
-  rt ~ aphantasia * congruence * color + 
-    (congruence * color | subjectid))
-
-formula <- bf(
-  rt ~ aphantasia * congruence * color + 
-    (1 | subjectid))
+formula <- bf(rt ~ aphantasia * congruence * color + (1 | subjectid))
 
 # Priors ------------------------------------------------------------------
 

@@ -2,22 +2,20 @@
 library(here)
 source(here("scripts/_setup.R"))
 
-# Questionnaires
+# Questionnaires -----------------------------------------------------------
 df_questionnaires <- 
   read_excel(
     here("data/data-raw/priming-data-raw.xlsx"),
     sheet = "data_questionnaires"
   ) |> 
-  set_variable_labels(
-    subjectid = "Subject",
-    age = "Age",
-    sex = "Sex",
-    aphantasia = "Group",
-    vviq80 = "VVIQ",
-    osiq_o75 = "OSIQ-Object",
-    osiq_s75 = "OSIQ-Spatial",
-    suis60 = "SUIS"
+  mutate(vviq80 = trunc(vviq80)) |> 
+  rename(
+    "VVIQ" = vviq80,
+    "OSIQ_Object" = osiq_o75,
+    "OSIQ_Spatial" = osiq_s75,
+    "SUIS" = suis60
   )
+
 
 # Explicit task -----------------------------------------------------------
 
@@ -96,18 +94,85 @@ df_i_rt <-
   select(!correct_implicit)
 
 
+
+# Adding congruence effects -----------------------------------------------
+
+congruence_effects <-
+  list(
+    df_e_rt = df_e_rt,
+    df_i_rt = df_i_rt
+  ) |> 
+  imap(
+    ~.x |> 
+      group_by(subjectid, congruence, color) |> 
+      reframe(mean_rt = mean(rt)) |> 
+      group_by(subjectid, congruence) |> 
+      reframe(mean = mean(mean_rt)) |> 
+      pivot_wider(
+        names_from = congruence,
+        values_from = mean
+      ) |> 
+      mutate(congruence_effect = Incongruent - Congruent, .keep = "unused") |> 
+      ungroup()
+  )
+
+df_questionnaires <- 
+  df_questionnaires |>
+  left_join(congruence_effects[["df_e_rt"]], by = "subjectid") |>
+  rename("Explicit effect" = congruence_effect) |>
+  left_join(congruence_effects[["df_i_rt"]], by = "subjectid") |> 
+  rename("Implicit effect" = congruence_effect) |> 
+  select(
+    subjectid:aphantasia, 
+    contains("Imp"), contains("Exp"), 
+    "VVIQ":"SUIS"
+  ) |> 
+  group_by(aphantasia) |> 
+  mutate(across(
+    contains("effect"),
+    ~if_else(is.na(.x), mean(.x, na.rm = TRUE), .x))) |> 
+  ungroup()
+
+df_q_ranked <- df_questionnaires |> mutate(across(VVIQ:SUIS, rank))
+
+df_q_norm <- 
+  df_questionnaires |>
+  mutate(
+    VVIQ = as.numeric(
+      scales::rescale(
+        VVIQ, 
+        from = c(16, 80), 
+        to = c(0, 1))),
+    SUIS = as.numeric(
+      scales::rescale(
+        SUIS, 
+        from = c(12, 60), 
+        to = c(0, 1))),
+    OSIQ_Object = as.numeric(
+      scales::rescale(
+        OSIQ_Object, 
+        from = c(15, 75), 
+        to = c(0, 1))),
+    OSIQ_Spatial = as.numeric(
+      scales::rescale(
+        OSIQ_Spatial, 
+        from = c(15, 75), 
+        to = c(0., 1)))
+  )
+
 # Exporting to .xlsx ------------------------------------------------------
-# write.xlsx(
-#   list(
-#     "data_implicit_preprocessed" = df_i_acc,
-#     "data_implicit_no_errors" = df_i_rt,
-#     "data_explicit_preprocessed" = df_e_acc,
-#     "data_explicit_no_errors" = df_e_rt
-#   ),
-#   here("data/data-transformed/priming-data-preprocessed.xlsx"),
-#   asTable = TRUE,
-#   colNames = TRUE,
-#   colWidths = "auto",
-#   borders = "all",
-#   tableStyle = "TableStyleMedium16"
-# )
+write.xlsx(
+  list(
+    "data_questionnaires" = df_questionnaires,
+    "data_implicit_preprocessed" = df_i_acc,
+    "data_implicit_no_errors" = df_i_rt,
+    "data_explicit_preprocessed" = df_e_acc,
+    "data_explicit_no_errors" = df_e_rt
+  ),
+  here("data/data-transformed/priming-data-preprocessed.xlsx"),
+  asTable = TRUE,
+  colNames = TRUE,
+  colWidths = "auto",
+  borders = "all",
+  tableStyle = "TableStyleMedium16"
+)

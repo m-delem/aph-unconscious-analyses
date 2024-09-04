@@ -44,7 +44,7 @@ pacman::p_load(
 
 
 # Custom functions shared across scripts ----------------------------------
-source(here("scripts/_functions.R"))
+source(here("scripts/_bayesian-functions.R"))
 
 
 # Global cosmetic theme ---------------------------------------------------

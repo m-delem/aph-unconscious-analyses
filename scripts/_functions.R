@@ -1,6 +1,14 @@
 # Functions shared across scripts are placed here
 
 
+# Signed-rank transformation ----------------------------------------------
+
+signed_rank <- function(x) {
+  x <- as.numeric(x)
+  x <- sign(x) * rank(abs(x))
+  return(x)
+}
+
 # Define contrasts inside a dplyr pipe ------------------------------------
 
 define_contrasts <- function(df, col, contrast) {
@@ -179,4 +187,60 @@ plot_models_zoomed <- function(
       panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
       panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
     )
+}
+
+
+# Table of a questionnaire model ------------------------------------------
+
+generate_model_summary <- 
+  function(model, model_ranked, questionnaire_name){
+    table_summary <-
+      estimate_means(model, by = "aphantasia", p_adjust = "none") |> 
+      select(!c(CI_low, CI_high)) |>
+      mutate(across(c(Mean, SE), ~as.character(round(.x, digits = 3)))) |> 
+      unite("Mean ± SE", Mean:SE, sep = " ± ") |> 
+      pivot_wider(
+        names_from = aphantasia,
+        values_from = "Mean ± SE"
+      ) |> 
+      mutate(Questionnaire = questionnaire_name) |> 
+      rename(
+        "Aphantasics" = yes,
+        "Controls" = no
+      ) |> 
+      select(Questionnaire, everything()) |> 
+      bind_cols(
+        estimate_contrasts(
+          model_ranked, 
+          contrast = "aphantasia", 
+          p_adjust = "none")[,7:9]
+      ) 
+    
+    return(table_summary)
+  }
+
+
+# Prepare marginal means for plotting ---------------------------------------
+
+prepare_means <- function(model, questionnaire){
+  estimate_means(model, by = "aphantasia") |> 
+    mutate(Questionnaire = questionnaire)
+}
+
+
+# Plotting correlations ---------------------------------------------------
+
+plot_correlations <- function(df, x, y){
+  ggscatter(
+    data = df,
+    x = x,
+    y = y,
+    color = "aphantasia",
+    palette = c("#E69F00", "#56B4E9"),
+    shape = "aphantasia",
+    mean.point = TRUE,
+    mean.point.size = 5,
+    star.plot = TRUE,
+    star.plot.lwd = .01,
+  )
 }
