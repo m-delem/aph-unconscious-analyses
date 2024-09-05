@@ -2,13 +2,25 @@
 library(here)
 source(here("scripts/_setup.R"))
 
+
 # Questionnaires -----------------------------------------------------------
+
 df_questionnaires <- 
   read_excel(
     here("data/data-raw/priming-data-raw.xlsx"),
     sheet = "data_questionnaires"
-  ) |> 
-  mutate(vviq80 = trunc(vviq80)) |> 
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 74 ~ "Hyperphantasia"
+      ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+    ) |> 
   rename(
     "VVIQ" = vviq80,
     "OSIQ_Object" = osiq_o75,
@@ -45,9 +57,20 @@ df_e_acc <-
       "subject_106",
       "subject_119"
     )) 
-  ) |>  
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 74 ~ "Hyperphantasia"
+    ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+  ) |> 
   # removing irrelevant variables
-  select(-c(sex, vviq80, orientation, response)) |>  
+  select(!c(sex, vviq80, orientation, response)) |>  
   # filtering out extreme RTs
   filter(rt > .3 & rt < 3)
 
@@ -56,9 +79,11 @@ df_e_rt <-
   filter(correct_explicit == 1) |> 
   select(!correct_explicit)
 
+# removing hyperphantasia for finer analyses
+df_e_finer <- df_e_rt |> filter(sub_group != "Hyperphantasia")
+
 
 # Implicit task -----------------------------------------------------------
-
 
 df_i_acc <- 
   read_excel(
@@ -82,9 +107,20 @@ df_i_acc <-
         "subject_120",
         "subject_127"
       ))
-  ) |>  
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 74 ~ "Hyperphantasia"
+    ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+  ) |> 
   # removing irrelevant variables
-  select(-c(sex, vviq80, orientation, response)) |>  
+  select(!c(sex, vviq80, orientation, response)) |>  
   # filtering out extreme RTs
   filter(rt > .3 & rt < 3)
 
@@ -93,6 +129,8 @@ df_i_rt <-
   filter(correct_implicit == 1) |> 
   select(!correct_implicit)
 
+# removing hyperphantasia for finer analyses
+df_i_finer <- df_i_rt |> filter(sub_group != "Hyperphantasia")
 
 
 # Adding congruence effects -----------------------------------------------
@@ -123,7 +161,7 @@ df_questionnaires <-
   left_join(congruence_effects[["df_i_rt"]], by = "subjectid") |> 
   rename("Implicit effect" = congruence_effect) |> 
   select(
-    subjectid:aphantasia, 
+    subjectid:aphantasia, sub_group,
     contains("Imp"), contains("Exp"), 
     "VVIQ":"SUIS"
   ) |> 
@@ -132,6 +170,9 @@ df_questionnaires <-
     contains("effect"),
     ~if_else(is.na(.x), mean(.x, na.rm = TRUE), .x))) |> 
   ungroup()
+
+
+# Creating ranked and normalised dataframe versions ----------------------------
 
 df_q_ranked <- df_questionnaires |> mutate(across(VVIQ:SUIS, rank))
 
@@ -159,6 +200,7 @@ df_q_norm <-
         from = c(15, 75), 
         to = c(0., 1)))
   )
+
 
 # Exporting to .xlsx ------------------------------------------------------
 write.xlsx(

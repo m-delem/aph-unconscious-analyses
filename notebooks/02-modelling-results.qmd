@@ -11,14 +11,15 @@ library(here)
 source(here("scripts/00-preprocessing.R"))
 ```
 
-:::: {.content-visible when-format="html"}
+::: {.content-visible when-format="html"}
 ::: {.callout-note collapse="true"}
 # Packages and setup
-```r
+
+``` r
 {{< include ../scripts/_setup.R >}}
 ```
 :::
-::::
+:::
 
 # Questionnaires analyses
 
@@ -28,10 +29,13 @@ source(here("scripts/00-preprocessing.R"))
 
 ::: {#supptbl-questionnaire-results}
 ```{r}
+#| label: table-questionnaires
+#| echo: false
+
 group_effects <- 
   df_questionnaires |>
   pivot_longer(
-    cols = c("Implicit effect":"SUIS"),
+    cols = c("VVIQ":"SUIS"),
     names_to = "questionnaire",
     values_to = "score"
   ) |> 
@@ -39,18 +43,10 @@ group_effects <-
   nest() |> 
   rowwise() |> 
   mutate(
-    lm = list(
-      lm(score ~ aphantasia, data = data)
-    ),
-    lm_ranked = list(
-      lm(rank(score) ~ aphantasia, data = data)
-    ),
-    ranked_means = list(
-      prepare_means(lm_ranked, questionnaire)
-    ),
-    table = list(
-      generate_model_summary(lm, lm_ranked, questionnaire)
-    )
+    lm = list(lm(score ~ aphantasia, data = data)),
+    lm_ranked = list(lm(rank(score) ~ aphantasia, data = data)),
+    ranked_means = list(prepare_means(lm_ranked, questionnaire)),
+    table = list(generate_model_summary(lm, lm_ranked, questionnaire))
   )
 
 bind_rows(group_effects$table) |> display()
@@ -60,6 +56,9 @@ bind_rows(group_effects$table) |> display()
 ### Plot
 
 ```{r}
+#| label: questionnaire-plot-setup
+#| echo: false
+
 # dodge width for all the geoms
 dw <- 1
 # axis text size
@@ -70,19 +69,37 @@ txt_legend <- 12
 norm_means <- 
   df_q_norm |> 
   group_by(aphantasia) |>
-  reframe(across(VVIQ:SUIS, mean)) |> 
   pivot_longer(
     cols = c(VVIQ:SUIS),
     names_to = "Questionnaire",
-    values_to = "Mean"
-  ) |>
+    values_to = "score"
+  ) |> 
+  group_by(Questionnaire) |> 
+  nest() |> 
+  rowwise() |> 
+  mutate(
+    lm = list(lm(score ~ aphantasia, data = data)),
+    means = list(estimate_means(lm, by = "aphantasia"))
+  ) |> 
+  unnest(means) |> 
+  select(!c(data, lm)) |> 
+  ungroup() |> 
   mutate(
     Questionnaire = fct_relevel(
-      Questionnaire, 
+      Questionnaire,
       c("VVIQ", "SUIS", "OSIQ_Object", "OSIQ_Spatial")
     ))
+```
+
+::: {#suppfig-questionnaire-plot}
+```{r}
+#| label: plot-questionnaires
+#| fig-width: 10
+#| fig-height: 5
 
 df_q_norm |> 
+  
+  # Long format first -----------------------------------------------------
   pivot_longer(
     cols = c(VVIQ:SUIS),
     names_to = "Questionnaire",
@@ -93,12 +110,15 @@ df_q_norm |>
       Questionnaire, 
       c("VVIQ", "SUIS", "OSIQ_Object", "OSIQ_Spatial")
     )) |> 
+  
+  # Plotting --------------------------------------------------------------
   ggplot(aes(
     x = Questionnaire, 
     y = Score, 
     fill = aphantasia, 
     color = aphantasia
     )) +
+  
   # accentuation of the median line at 0.5
   geom_hline(
     yintercept = .5,
@@ -106,6 +126,8 @@ df_q_norm |>
     color = "grey30",
     alpha = .2
   ) +
+  
+  # Scores ---------------------------------------------------------------
   # violin shapes for the distributions and quantiles
   geom_violin(
     position = position_dodge(dw),
@@ -113,142 +135,289 @@ df_q_norm |>
     draw_quantiles = c(.25, .5, .75)
   ) +
   # points for means and lines for CIs
-  geom_point(
+  geom_pointrange(
     data = norm_means,
     aes(
       x = Questionnaire,
       y = Mean,
+      ymin = CI_low,
+      ymax = CI_high,
       color = aphantasia
     ),
-    size = 2,
+    size = .75,
+    linewidth = 1,
     position = position_dodge(dw)
   ) +
-  # star for significance
+  
+  # Stars and lines --------------------------------------------------------
+  # stars for significance
   annotate(
-    geom  = "text",
-    label = "*",
-    color = "black",
-    x = 1,
-    y = .95,
-    size  = 10 
+    geom  = "text", label = "***", color = "black",
+    x = 1, y = .95, size  = 10 
     ) +
   # dotted line that separates the different questionnaires
   geom_vline(
     aes(xintercept = stage(Questionnaire, after_scale = 1.5)),
     linetype = 3
   ) +
-  # star for significance
+  # stars 
   annotate(
-    geom  = "text",
-    label = "*",
-    color = "black",
-    x = 2,
-    y = .95,
-    size  = 10 
+    geom  = "text", label = "***", color = "black",
+    x = 2, y = .95, size  = 10 
     ) +
-  # dotted line that separates the different questionnaires
+  # dotted line
   geom_vline(
     aes(xintercept = stage(Questionnaire, after_scale = 2.5)),
     linetype = 3
   ) +
-  # star for significance
+  # stars
   annotate(
-    geom  = "text",
-    label = "*",
-    color = "black",
-    x = 3,
-    y = .95,
-    size  = 10 
+    geom  = "text", label = "***", color = "black",
+    x = 3, y = .95, size  = 10 
     ) +
-  # dotted line that separates the different questionnaires
+  # dotted line
   geom_vline(
     aes(xintercept = stage(Questionnaire, after_scale = 3.5)),
     linetype = 3
   ) +
-  # star for significance
+  # stars
   annotate(
-    geom  = "text",
-    label = "*",
-    color = "black",
-    x = 4,
-    y = .95,
-    # vjust = .1,
-    # hjust = 6,
-    size  = 10 
-    ) 
+    geom  = "text", label = "***", color = "black",
+    x = 4, y = .95, size  = 10 
+    ) +
+  
+  # Aesthetics -------------------------------------------------------------
+  scale_color_okabeito(name = "Group:  ", labels = c(" Control   ", " Aphantasic")) +
+  scale_fill_okabeito(name = "Group:  ", labels  = c(" Control   ", " Aphantasic")) +
+  scale_x_discrete(
+    name = "",
+    labels = c("VVIQ", "SUIS", "OSIQ-Object", "OSIQ-Spatial")
+  ) +
+  scale_y_continuous(
+    name = "Standardized score",
+    breaks = breaks_pretty(8)
+  ) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(),
+    axis.text.x  = element_text(size = txt),
+    axis.title.y = element_text(size = txt),
+    legend.title = element_text(size = txt_legend),
+    legend.text  = element_text(size = txt_legend),
+    legend.position = "top"
+    )
+
+# ggsave(here("figures/questionnaires.png"), dpi = 600)
 ```
+:::
 
+## Congruence effects correlations
 
-## Congruence effects
-
-### Correlations
+### Matrices
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 6
+#| label: tables-corr-questionnaires
 
 corr_whole <- 
   df_questionnaires |> 
-    select(4:10) |>
-    mutate(across(VVIQ:SUIS, rank)) |> 
-    correlation(p_adjust = "none") 
+    select(aphantasia, "Implicit effect":"SUIS") |>
+    correlation(method = "spearman", p_adjust = "fdr") 
 
 corr_aph <-
-  df_questionnaires |> 
-    select(4:10) |>
+  df_questionnaires |>
+    select(aphantasia, "Implicit effect":"SUIS") |>
     filter(aphantasia == "yes") |>
-    mutate(across(VVIQ:SUIS, rank)) |> 
-    correlation(p_adjust = "none")
+    correlation(method = "spearman", p_adjust = "fdr") 
 
 corr_control <-
-  df_questionnaires |> 
-    select(4:10) |>
-    filter(aphantasia == "no") |> 
-    mutate(across(VVIQ:SUIS, rank)) |> 
-    correlation(p_adjust = "none")
+  df_questionnaires |>
+    select(aphantasia, "Implicit effect":"SUIS") |>
+    filter(aphantasia == "no")  |>
+    correlation(method = "spearman", p_adjust = "fdr") 
 
-corr_whole
-corr_aph
-corr_control
-
-corr_whole |> summary() |> plot() + 
-  labs(title = "Correlation matrix, whole group")
-
-corr_aph |> summary() |> plot() +
-  labs(title = "Correlation matrix, aphantasia group only")
-
-corr_control |> summary() |> plot() +
-  labs(title = "Correlation matrix, control group only")
+# corr_whole
+# corr_aph
+# corr_control
 ```
 
-### Plots 
-
+::: {#suppfig-corr-mat-questionnaires}
 ```{r}
+#| label: corr-mat-questionnaires
 #| fig-width: 10
 #| fig-height: 6
+#| eval: false
 
-df_questionnaires |> plot_correlations("VVIQ", "Implicit effect")
-df_questionnaires |> plot_correlations("OSIQ_Object", "Implicit effect")
-df_questionnaires |> plot_correlations("SUIS", "Implicit effect")
-df_questionnaires |> plot_correlations("SUIS", "Explicit effect")
+corr_whole |> summary() |> plot() + 
+  labs(title = "Correlation matrix, whole group (Spearman FDR corrected)")
+
+# ggsave(here("figures/corr-mat-whole.png"), dpi = 600)
+
+corr_aph |> summary() |> plot() +
+  labs(title = "Correlation matrix, aphantasia group only (Spearman FDR corrected)")
+
+# ggsave(here("figures/corr-mat-aph.png"), dpi = 600)
+
+corr_control |> summary() |> plot() +
+  labs(title = "Correlation matrix, control group only (Spearman FDR corrected)")
+
+# ggsave(here("figures/corr-mat-control.png"), dpi = 600)
+```
+:::
+
+### Plots
+
+```{r}
+#| label: corr-plots-questionnaires-setup
+#| fig-width: 10
+#| fig-height: 5
+#| include: false
+
+note_size = 6
 
 # Ranked versions
-df_q_ranked |> plot_correlations("VVIQ", "Implicit effect")
-df_q_ranked |> plot_correlations("OSIQ_Object", "Implicit effect")
-df_q_ranked |> plot_correlations("SUIS", "Implicit effect")
-df_q_ranked |> plot_correlations("SUIS", "Explicit effect")
+p_corr_vviq <-
+  df_q_ranked |> 
+  plot_correlations("VVIQ", "Implicit effect") +
+  labs(x = "VVIQ (ranked)", y = "Implicit effect") +
+  annotate(
+    geom  = "text", 
+    label = TeX(r"($\rho = 0.21, \textit{p} = 0.02$)"), 
+    color = "black",
+    x = 89, y = .25, 
+    size  = note_size 
+    )
+
+p_corr_osiq <-
+  df_q_ranked |> 
+  plot_correlations("OSIQ_Object", "Implicit effect") +
+  labs(x = "OSIQ-Object (ranked)", y = "Implicit effect") +
+  annotate(
+    geom  = "text", 
+    label = TeX(r"($\rho = 0.26, \textit{p} = 0.003$)"), 
+    color = "black",
+    x = 80, y = .25, 
+    size  = note_size 
+    )
+
+p_corr_suis <-
+  df_q_ranked |> 
+  plot_correlations("SUIS", "Implicit effect") +
+  labs(x = "SUIS (ranked)", y = "Implicit effect") +
+  annotate(
+    geom  = "text", 
+    label = TeX(r"($\rho = 0.27, \textit{p} = 0.002$)"), 
+    color = "black",
+    x = 81, y = .25, 
+    size  = note_size 
+    )
 ```
 
+::: {#suppfig-corr-plots-questionnaires}
+```{r}
+#| label: corr-plots-questionnaires
+#| fig-width: 20
+#| fig-height: 15
+
+layout <- "
+AAAABBBB
+##CCCC##
+"
+
+# ((p_corr_vviq + p_corr_osiq) / p_corr_suis) +
+(p_corr_vviq + p_corr_osiq + p_corr_suis) +
+  plot_layout(design = layout, guides = "collect") &
+  theme(
+    legend.position = "top", 
+    legend.text = element_text(size = 20),
+    legend.title = element_blank(),
+    axis.title = element_text(size = 16)
+    )
+
+# ggsave(here("figures/corr-plots.png"), dpi = 600)
+```
+:::
 
 # Accuracy analyses
 
+We will quickly check for accuracy differences between groups with a logistic regression model.
 
+```{r}
+#| label: accuracy-models
+
+fit_acc_im <- 
+  glmer(
+    formula = correct_implicit ~ (aphantasia + congruence + color)^3 + (1 | subjectid),
+    data = df_i_acc,
+    family = binomial(link = "logit"),
+  control = glmerControl(optimizer = "bobyqa")
+  )
+
+fit_acc_ex <- 
+  glmer(
+    formula = correct_explicit ~ (aphantasia + congruence + color)^3 + (1 | subjectid),
+    data = df_e_acc,
+    family = binomial(link = "logit"),
+    control = glmerControl(optimizer = "bobyqa")
+  )
+```
+
+::: {#supptbl-acc-i-summary}
+```{r}
+#| label: summary-accuracy-implicit
+#| echo: false
+
+model_performance(fit_acc_im) |> display()
+
+model_parameters(fit_acc_im) |> display()
+```
+
+Performance and estimates of the logistic GLMM fitted on accuracy in the implicit task.
+:::
+
+::: {#supptbl-acc-i-estimates}
+```{r}
+#| label: estimates-accuracy-implicit
+#| echo: false
+
+estimate_means(fit_acc_im, by = "aphantasia", transform = "response") |> display()
+
+estimate_contrasts(fit_acc_im, contrast = "aphantasia", transform = "response", p_adjust = "none") |> display()
+```
+
+Estimated probability of a correct answer and log-odds contrasts between groups for the accuracy in the implicit task.
+:::
+
+::: {#supptbl-acc-e-summary}
+```{r}
+#| label: summary-accuracy-explicit
+#| echo: false
+
+model_performance(fit_acc_ex) |> display()
+
+model_parameters(fit_acc_ex) |> display()
+```
+
+Performance and estimates of the logistic GLMM fitted on accuracy in the explicit task.
+:::
+
+::: {#supptbl-acc-e-estimates}
+```{r}
+#| label: estimates-accuracy-explicit
+#| echo: false
+
+estimate_means(fit_acc_ex, by = "aphantasia", transform = "response") |> display()
+
+estimate_contrasts(fit_acc_ex, contrast = "aphantasia", transform = "response", p_adjust = "none") |> display()
+```
+
+Estimated probability of a correct answer and log-odds contrasts between groups for the accuracy in the explicit task.
+:::
 
 # Response Times analyses
 
 ## Rationale
 
-To account for the non-normal, positively skewed distributions of the RTs, we fitted Generalized Linear Mixed Models (GLMMs) with inverse Gaussian distributions. The models were implemented in the `lme4` R package and integrated in `tidymodels` workflows using the package `multilevelmod`. Models with Gamma and Gaussian distributions were also fitted and compared with the AIC and BIC to ensure that we chose the best distribution available. 
+To account for the non-normal, positively skewed distributions of the RTs, we fitted Generalized Linear Mixed Models (GLMMs) with inverse Gaussian distributions. The models were implemented in the `lme4` R package and integrated in `tidymodels` workflows using the package `multilevelmod`. Models with Gamma and Gaussian distributions were also fitted and compared with the AIC and BIC to ensure that we chose the best distribution available.
 
 The models included the ***Group*** (aphantasic, control), ***Congruence*** condition (congruent or incongruent) and ***Color*** condition (color or uncolored) along with all their two and three way interactions as fixed categorical predictors, while ***participants*** have been included as grouping factors (i.e. "random effects"). The random effect structure was chosen by fitting and comparing models with every possible combination of distribution and structure (intercept by participant, congruence or color, slope by participant on congruence and/or color) aiming for the best balance between goodness of fit and parsimony. Complex random-effects structures including various slopes on the factors failed to converge to stable and reliable estimates, hence the optimal models chosen included a single by-participant random intercept.
 
@@ -283,11 +452,10 @@ fit_explicit <-
 
 ## Model diagnostics
 
-The quality checks of the models are displayed in [@suppfig-implicit-checks and @suppfig-explicit-checks]{.content-visible when-format="html"} [@suppfig-implicit-checks-2 and @suppfig-explicit-checks-2]{.content-hidden when-format="html"}.
+The quality checks of the models are displayed in @suppfig-implicit-checks[ and @suppfig-explicit-checks]{.content-visible when-format="html"} @suppfig-implicit-checks-2[ and @suppfig-explicit-checks-2]{.content-hidden when-format="html"}.
 
-:::: {.content-visible when-format="html"}
+::: {.content-visible when-format="html"}
 ::: {.panel-tabset .column-page-inset}
-
 ### Implicit task
 
 ```{r}
@@ -332,22 +500,18 @@ check_model(
 ```
 
 ![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task.](../figures/checks-explicit.png){#suppfig-explicit-checks}
-
 :::
-::::
+:::
 
-:::{.content-hidden when-format="html"}
-
+::: {.content-hidden when-format="html"}
 ![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the implicit task.](../figures/checks-implicit.png){#suppfig-implicit-checks-2}
 
 ![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task.](../figures/checks-explicit.png){#suppfig-explicit-checks-2}
-
 :::
-
 
 ## Model summaries
 
-:::{#supptbl-glmm-i-summary}
+::: {#supptbl-glmm-i-summary}
 ```{r}
 #| label: summary-implicit
 #| echo: false
@@ -360,7 +524,7 @@ model_parameters(fit_implicit) |> display()
 Performance and estimates of the GLMM fitted on the implicit task data.
 :::
 
-:::{#supptbl-glmm-e-summary}
+::: {#supptbl-glmm-e-summary}
 ```{r}
 #| label: summary-explicit
 #| echo: false
@@ -375,7 +539,7 @@ Performance and estimates of the GLMM fitted on the explicit task data.
 
 ## Estimated means and contrasts
 
-:::{#supptbl-estimates-implicit}
+::: {#supptbl-estimates-implicit}
 ```{r}
 #| label: emmeans-implicit
 #| echo: false
@@ -402,7 +566,7 @@ fit_implicit |>
 Estimated means for each group in each congruence condition and contrasts between groups and conditions in the implicit task.
 :::
 
-:::{#supptbl-estimates-explicit}
+::: {#supptbl-estimates-explicit}
 ```{r}
 #| label: emmeans-explicit
 #| echo: false
@@ -431,7 +595,7 @@ Estimated means for each group in each congruence condition and contrasts betwee
 
 ## Visualisations
 
-The figures below are also displayed in the main article. [See the HTML version for the code and details.] {.content-hidden when-format="html"}
+The figures below are also displayed in the main article. \[See the HTML version for the code and details.\] {.content-hidden when-format="html"}
 
 ```{r}
 #| label: fig-im
@@ -495,15 +659,123 @@ subj_means_ex <-
 # ggsave(here("figures/model-explicit.png"), dpi = 600)
 ```
 
-# Correlational analyses
+# Finer groups
+
+```{r}
+#| label: checking-finer-groups
+
+df_questionnaires |> 
+  group_by(aphantasia, sub_group) |> 
+  count() |> 
+  arrange(sub_group)
+```
+
+Interestingly, we have 39 participants that did not score at floor VVIQ but between 17 and 32, a score range that @reeder have proposed to call "hypophantasia". However, our sample comprised only 2 hyperphantasics, i.e. participants scoring above 74 [@zeman2024]. These two participants will therefore be removed from the sample before performing new analyses on the aphantasic, hypophantasic and typical groups.
+
+```{r}
+
+model_formula_finer <- rt ~ (sub_group + congruence + color)^3 + (1|subjectid)
+
+fit_finer_i <- 
+  glmer(
+    formula = model_formula_finer,
+    data = df_i_finer,
+    family = inverse.gaussian(link = "identity"),
+    control = glmerControl(optimizer = "bobyqa")
+  )
+
+fit_finer_e <-
+  glmer(
+    formula = model_formula_finer,
+    data = df_e_finer,
+    family = inverse.gaussian(link = "identity"),
+    control = glmerControl(optimizer = "bobyqa")
+  )
+```
 
 
+```{r}
+#| label: checks
+#| fig-width: 14
+#| fig-height: 12
+#| eval: false
 
-:::: {.content-visible when-format="html"}
+# characteristics to check
+model_checks <- c("pp_check","homogeneity", "vif", "outliers", "qq", "reqq")
 
-&nbsp;
-&nbsp;
-&nbsp;
+check_model(
+  fit_finer_i, 
+  checks = model_checks, 
+  detrend = FALSE, 
+  residual_type = "normal"
+  ) |> 
+  plot()
+
+# ggsave(here("figures/checks-finer-implicit.png"), dpi = 600)
+
+check_model(
+  fit_finer_e, 
+  checks = model_checks, 
+  detrend = FALSE, 
+  residual_type = "normal"
+  ) |> 
+  plot()
+
+# ggsave(here("figures/checks-finer-explicit.png"), dpi = 600)
+```
+
+```{r}
+model_performance(fit_finer_i)
+
+model_parameters(fit_finer_i)
+```
+
+```{r}
+model_performance(fit_finer_e)
+
+model_parameters(fit_finer_e)
+```
+
+```{r}
+#| label: emmeans-finer
+#| echo: false
+
+Anova(fit_finer_i, type = 3)
+Anova(fit_finer_e, type = 3)
+
+# emmeans_im <-
+  emmeans(fit_finer_i, c("congruence", "sub_group")) |>
+  summary(point.est = median) |>
+  as_tibble() |>
+  mutate(across(3:7, ~.*1000)) |>
+  rename(median = emmean)
+
+# emmeans_im |> 
+#   rename(Group = 1, Condition = 2, "Median (ms)" = median) |>
+#   display()
+
+fit_finer_i |> 
+  estimate_contrasts(
+    contrast = c("congruence", "sub_group"), 
+    p_adjust = "none"
+  )
+
+# emmeans_ex <-
+  emmeans(fit_finer_e, c("congruence", "sub_group")) |>
+  summary(point.est = median) |>
+  as_tibble() |>
+  mutate(across(3:7, ~.*1000)) |>
+  rename(median = emmean)
+  
+fit_finer_e |> 
+  estimate_contrasts(
+    contrast = c("congruence", "sub_group"), 
+    p_adjust = "none"
+  )
+```
+
+::: {.content-visible when-format="html"}
+     
 
 ::: {.callout-note collapse="true"}
 # Session information for reproducibility
@@ -519,6 +791,4 @@ report_packages(session = sessionInfo())
 cat("═════════════════════════════════════════════════════════════════════════")
 ```
 :::
-::::
-
-
+:::

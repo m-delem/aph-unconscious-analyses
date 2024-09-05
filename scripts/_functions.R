@@ -1,14 +1,6 @@
 # Functions shared across scripts are placed here
 
 
-# Signed-rank transformation ----------------------------------------------
-
-signed_rank <- function(x) {
-  x <- as.numeric(x)
-  x <- sign(x) * rank(abs(x))
-  return(x)
-}
-
 # Define contrasts inside a dplyr pipe ------------------------------------
 
 define_contrasts <- function(df, col, contrast) {
@@ -220,7 +212,7 @@ generate_model_summary <-
   }
 
 
-# Prepare marginal means for plotting ---------------------------------------
+# Prepare marginal means for display ---------------------------------------
 
 prepare_means <- function(model, questionnaire){
   estimate_means(model, by = "aphantasia") |> 
@@ -236,11 +228,33 @@ plot_correlations <- function(df, x, y){
     x = x,
     y = y,
     color = "aphantasia",
-    palette = c("#E69F00", "#56B4E9"),
     shape = "aphantasia",
     mean.point = TRUE,
     mean.point.size = 5,
     star.plot = TRUE,
-    star.plot.lwd = .01,
-  )
+    star.plot.lwd = .08
+    ) +
+    geom_smooth(
+      method = "lm",
+      formula = y ~ x,
+      color = "black",
+      linewidth = .8,
+      alpha = .2,
+      fullrange = TRUE
+    ) +
+    scale_x_continuous(
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
+    scale_y_continuous(
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
+    scale_color_okabeito(
+      name = "Group:  ", 
+      labels = c(" Control   ", " Aphantasic")
+    ) +
+    scale_shape_manual(
+      name = "Group:  ", 
+      labels = c(" Control   ", " Aphantasic"),
+      values = c(16, 17)
+    ) 
 }
