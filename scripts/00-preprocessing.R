@@ -14,12 +14,12 @@ df_questionnaires <-
     sub_group = case_when(
       vviq80 == 16 ~ "Aphantasia",
       vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
-      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
       vviq80 >= 74 ~ "Hyperphantasia"
       ), 
     sub_group = factor(
       sub_group, 
-      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
     ) |> 
   rename(
     "VVIQ" = vviq80,
@@ -62,12 +62,12 @@ df_e_acc <-
     sub_group = case_when(
       vviq80 == 16 ~ "Aphantasia",
       vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
-      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
       vviq80 >= 74 ~ "Hyperphantasia"
     ), 
     sub_group = factor(
       sub_group, 
-      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
   ) |> 
   # removing irrelevant variables
   select(!c(sex, vviq80, orientation, response)) |>  
@@ -112,12 +112,12 @@ df_i_acc <-
     sub_group = case_when(
       vviq80 == 16 ~ "Aphantasia",
       vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
-      vviq80 >= 32 & vviq80 < 74 ~ "Typical",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
       vviq80 >= 74 ~ "Hyperphantasia"
     ), 
     sub_group = factor(
       sub_group, 
-      levels = c("Aphantasia", "Hypophantasia", "Typical", "Hyperphantasia"))
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
   ) |> 
   # removing irrelevant variables
   select(!c(sex, vviq80, orientation, response)) |>  

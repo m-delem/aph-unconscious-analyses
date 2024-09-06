@@ -45,6 +45,7 @@ clean_variables <- function(df){
 
 plot_models_full <- function(
     df, 
+    group,
     estimates,
     dw = .4,
     size = 3,
@@ -55,78 +56,128 @@ plot_models_full <- function(
     ...
     ) {
   
-  df |> 
-    ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
-    geom_violinhalf(
-      trim = TRUE,
-      flip = c(1, 2),
-      alpha = .5,
-      scale = "width",
-      position = position_dodge(width = dw),
-      show.legend = FALSE
-    ) +
-    # individual subject lines
-    geom_line(
-      data = df |> filter(aphantasia == "Aphantasia"),
-      aes(group = interaction(subjectid, aphantasia)),
-      position = position_nudge(nudge),
-      alpha = alpha_subj,
-      show.legend = FALSE
-    ) +
-    geom_line(
-      data = df |> filter(aphantasia == "Control"),
-      aes(group = interaction(subjectid, aphantasia)),
-      position = position_nudge(-nudge),
-      alpha = alpha_subj,
-      show.legend = FALSE
-    ) +
-    # individual subject points
-    geom_quasirandom(
-      color = "white",
-      pch = 21,
-      width = .05,
-      size = 1.8,
-      alpha = .6,
-      dodge.width = .4,
-      show.legend = FALSE
-    ) +
-    # group median lines
-    geom_line(
-      data = estimates,
-      aes(y = median, group = aphantasia),
-      position = position_dodge(width = dw),
-      linewidth = 1,
-      show.legend = FALSE
-    ) +
-    geom_errorbar(
-      data = estimates,
-      aes(y = median, ymin = median - SE, ymax = median + SE),
-      position = position_dodge(width = dw),
-      width = 0,
-      linewidth = 1,
-      color = "black",
-      show.legend = FALSE
-    ) +
-    geom_point2(
-      data = estimates,
-      aes(y = median),
-      position = position_dodge(width = dw),
-      size = size,
-      shape = 21,
-      stroke = 1,
-      color = "black"
-    ) +
-    labs(x = NULL, fill = NULL) +
-    scale_y_continuous(
-      name = "Response time (ms)",
-      breaks = breaks_pretty(),
-      limits = c(y_min, y_max)
-    ) +
-    theme(
-      axis.ticks.y = element_line(linewidth = 0.5),
-      panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
-      panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
-    )
+  if (group == "aphantasia"){
+    df |> 
+      ggplot(aes(x = congruence, y = rt, color = .data[[group]], fill = .data[[group]])) +
+      geom_violinhalf(
+        trim = TRUE,
+        flip = c(1, 2),
+        alpha = .5,
+        scale = "width",
+        position = position_dodge(width = dw),
+        show.legend = FALSE
+      ) +
+      # individual subject lines
+      geom_line(
+        data = df |> filter(.data[[group]] == "Aphantasia"),
+        aes(group = interaction(subjectid, .data[[group]])),
+        position = position_nudge(nudge),
+        alpha = alpha_subj,
+        show.legend = FALSE
+      ) +
+      geom_line(
+        data = df |> filter(.data[[group]] == "Control"),
+        aes(group = interaction(subjectid, .data[[group]])),
+        position = position_nudge(-nudge),
+        alpha = alpha_subj,
+        show.legend = FALSE
+      ) +
+      # individual subject points
+      geom_quasirandom(
+        color = "white",
+        pch = 21,
+        width = .05,
+        size = 1.8,
+        alpha = .6,
+        dodge.width = dw,
+        show.legend = FALSE
+      ) +
+      # group median lines
+      geom_line(
+        data = estimates,
+        aes(y = median, group = .data[[group]]),
+        position = position_dodge(width = dw),
+        linewidth = 1,
+        show.legend = FALSE
+      ) +
+      geom_errorbar(
+        data = estimates,
+        aes(y = median, ymin = median - SE, ymax = median + SE),
+        position = position_dodge(width = dw),
+        width = 0,
+        linewidth = 1,
+        color = "black",
+        show.legend = FALSE
+      ) +
+      geom_point2(
+        data = estimates,
+        aes(y = median),
+        position = position_dodge(width = dw),
+        size = size,
+        shape = 21,
+        stroke = 1,
+        color = "black"
+      ) +
+      labs(x = NULL, fill = NULL) +
+      scale_y_continuous(
+        name = "Response time (ms)",
+        breaks = breaks_pretty(),
+        limits = c(y_min, y_max)
+      ) +
+      theme(
+        axis.ticks.y = element_line(linewidth = 0.5),
+        panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
+        panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
+      )
+  }else{
+    df |> 
+      ggplot(aes(x = congruence, y = rt, color = .data[[group]], fill = .data[[group]])) +
+      geom_violinhalf(
+        trim = TRUE,
+        flip = c(1, 2, 3),
+        alpha = .5,
+        scale = "width",
+        position = position_dodge(width = dw),
+        show.legend = FALSE
+      ) +
+      # group median lines
+      geom_line(
+        data = estimates,
+        aes(y = median, group = .data[[group]]),
+        position = position_dodge(width = dw),
+        linewidth = 1,
+        show.legend = FALSE
+      ) +
+      geom_errorbar(
+        data = estimates,
+        aes(y = median, ymin = median - SE, ymax = median + SE),
+        position = position_dodge(width = dw),
+        width = 0,
+        linewidth = 1,
+        color = "black",
+        show.legend = FALSE
+      ) +
+      geom_point2(
+        data = estimates,
+        aes(y = median),
+        position = position_dodge(width = dw),
+        size = size,
+        shape = 21,
+        stroke = 1,
+        color = "black"
+      ) +
+      labs(x = NULL, fill = NULL) +
+      scale_y_continuous(
+        name = "Response time (ms)",
+        breaks = breaks_pretty(),
+        limits = c(y_min, y_max)
+      ) +
+      theme(
+        axis.ticks.y = element_line(linewidth = 0.5),
+        panel.grid.major.y = element_line(linewidth = 0.5, color = "grey90"),
+        panel.grid.minor.y = element_line(linewidth = 0.5, color = "grey95")
+      )
+    }
 }
 
 
@@ -134,6 +185,7 @@ plot_models_full <- function(
 
 plot_models_zoomed <- function(
     df, 
+    group,
     estimates,
     dw = .5,
     size = 3,
@@ -143,10 +195,10 @@ plot_models_zoomed <- function(
     ) {
   
   df |> 
-    ggplot(aes(x = congruence, y = rt, color = aphantasia, fill = aphantasia)) +
+    ggplot(aes(x = congruence, y = rt, color = .data[[group]], fill = .data[[group]])) +
     geom_line(
       data = estimates,
-      aes(y = median, group = aphantasia),
+      aes(y = median, group = .data[[group]]),
       position = position_dodge(width = dw),
       linewidth = 1.5,
       show.legend = FALSE

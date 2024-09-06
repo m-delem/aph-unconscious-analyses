@@ -245,20 +245,19 @@ corr_control <-
 #| label: corr-mat-questionnaires
 #| fig-width: 10
 #| fig-height: 6
-#| eval: false
 
 corr_whole |> summary() |> plot() + 
   labs(title = "Correlation matrix, whole group (Spearman FDR corrected)")
 
 # ggsave(here("figures/corr-mat-whole.png"), dpi = 600)
 
-corr_aph |> summary() |> plot() +
-  labs(title = "Correlation matrix, aphantasia group only (Spearman FDR corrected)")
+# corr_aph |> summary() |> plot() +
+#   labs(title = "Correlation matrix, aphantasia group only (Spearman FDR corrected)")
 
 # ggsave(here("figures/corr-mat-aph.png"), dpi = 600)
 
-corr_control |> summary() |> plot() +
-  labs(title = "Correlation matrix, control group only (Spearman FDR corrected)")
+# corr_control |> summary() |> plot() +
+#   labs(title = "Correlation matrix, control group only (Spearman FDR corrected)")
 
 # ggsave(here("figures/corr-mat-control.png"), dpi = 600)
 ```
@@ -452,7 +451,7 @@ fit_explicit <-
 
 ## Model diagnostics
 
-The quality checks of the models are displayed in @suppfig-implicit-checks[ and @suppfig-explicit-checks]{.content-visible when-format="html"} @suppfig-implicit-checks-2[ and @suppfig-explicit-checks-2]{.content-hidden when-format="html"}.
+The quality checks of the models are displayed in [@suppfig-implicit-checks and @suppfig-explicit-checks]{.content-visible when-format="html"} [@suppfig-implicit-checks-2 and @suppfig-explicit-checks-2]{.content-hidden when-format="html"}.
 
 ::: {.content-visible when-format="html"}
 ::: {.panel-tabset .column-page-inset}
@@ -595,7 +594,7 @@ Estimated means for each group in each congruence condition and contrasts betwee
 
 ## Visualisations
 
-The figures below are also displayed in the main article. \[See the HTML version for the code and details.\] {.content-hidden when-format="html"}
+The figures below are also displayed in the main article. [See the HTML version for the code and details.]{.content-hidden when-format="html"}
 
 ```{r}
 #| label: fig-im
@@ -609,8 +608,8 @@ subj_means_im <-
   reframe(rt = mean(rt)*1000)
 
 (
-  plot_models_full(subj_means_im, emmeans_im, y_min = 400, y_max = 1110, size = 4) +
-  plot_models_zoomed(subj_means_im, emmeans_im, size = 4) &
+  plot_models_full(subj_means_im, "aphantasia", emmeans_im, y_min = 400, y_max = 1110, size = 4) +
+  plot_models_zoomed(subj_means_im, "aphantasia", emmeans_im, size = 4) &
   theme(
     legend.position = "top",
     legend.title = element_blank(),
@@ -640,8 +639,8 @@ subj_means_ex <-
   reframe(rt = mean(rt)*1000)
 
 (
-  plot_models_full(subj_means_ex, emmeans_ex, y_min = 350, y_max = 1450, size = 4) +
-  plot_models_zoomed(subj_means_ex, emmeans_ex, size = 4) &
+  plot_models_full(subj_means_ex, "aphantasia", emmeans_ex, y_min = 350, y_max = 1450, size = 4) +
+  plot_models_zoomed(subj_means_ex, "aphantasia", emmeans_ex, size = 4) &
   theme(
     legend.position = "top",
     legend.title = element_blank(),
@@ -659,20 +658,27 @@ subj_means_ex <-
 # ggsave(here("figures/model-explicit.png"), dpi = 600)
 ```
 
-# Finer groups
+# Finer sub-groups
 
+::: {#supptbl-finer-check}
 ```{r}
 #| label: checking-finer-groups
 
 df_questionnaires |> 
   group_by(aphantasia, sub_group) |> 
   count() |> 
-  arrange(sub_group)
+  arrange(sub_group) |> 
+  rename(Aphantasia = 1, "Sub-group" = 2, N = 3) |> 
+  display()
 ```
+:::
 
-Interestingly, we have 39 participants that did not score at floor VVIQ but between 17 and 32, a score range that @reeder have proposed to call "hypophantasia". However, our sample comprised only 2 hyperphantasics, i.e. participants scoring above 74 [@zeman2024]. These two participants will therefore be removed from the sample before performing new analyses on the aphantasic, hypophantasic and typical groups.
+Interestingly, we have 39 participants that did not score at floor VVIQ but between 17 and 32, a score range that @reeder have proposed to call "hypophantasia". However, our sample comprised only 2 hyperphantasics, i.e. participants scoring above 74 [@zeman2024]. These two participants will therefore be removed from the sample before performing new analyses on the aphantasic, hypophantasic and control groups.
+
+## Model fitting
 
 ```{r}
+#| label: finer-models
 
 model_formula_finer <- rt ~ (sub_group + congruence + color)^3 + (1|subjectid)
 
@@ -693,9 +699,10 @@ fit_finer_e <-
   )
 ```
 
+## Model diagnostics
 
 ```{r}
-#| label: checks
+#| label: checks-finer-models
 #| fig-width: 14
 #| fig-height: 12
 #| eval: false
@@ -724,55 +731,154 @@ check_model(
 # ggsave(here("figures/checks-finer-explicit.png"), dpi = 600)
 ```
 
-```{r}
-model_performance(fit_finer_i)
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the implicit task with finer sub-groups.](../figures/checks-finer-implicit.png){#suppfig-implicit-checks-finer}
 
-model_parameters(fit_finer_i)
+![Model assumption checks for the Generalized Linear Mixed Model fit on the RTs in the explicit task with finer sub-groups.](../figures/checks-finer-explicit.png){#suppfig-explicit-checks-finer}
+
+## Model summaries
+
+::: {#supptbl-im-summary-finer}
+```{r}
+#| label: summary-finer-im
+
+model_performance(fit_finer_i) |> display()
+
+model_parameters(fit_finer_i) |> display()
+
+# Anova(fit_finer_i, type = 3)
 ```
+:::
 
+::: {#supptbl-ex-summary-finer}
 ```{r}
-model_performance(fit_finer_e)
+#| label: summary-finer-ex
 
-model_parameters(fit_finer_e)
+model_performance(fit_finer_e) |> display()
+
+model_parameters(fit_finer_e) |> display()
+
+# Anova(fit_finer_e, type = 3)
 ```
+:::
 
+## Estimated means and contrasts
+
+::: {#supptbl-im-estimates-finer}
 ```{r}
-#| label: emmeans-finer
+#| label: emmeans-finer-im
 #| echo: false
 
-Anova(fit_finer_i, type = 3)
-Anova(fit_finer_e, type = 3)
-
-# emmeans_im <-
+emmeans_finer_im <-
   emmeans(fit_finer_i, c("congruence", "sub_group")) |>
   summary(point.est = median) |>
   as_tibble() |>
   mutate(across(3:7, ~.*1000)) |>
   rename(median = emmean)
 
-# emmeans_im |> 
-#   rename(Group = 1, Condition = 2, "Median (ms)" = median) |>
-#   display()
+emmeans_finer_im |>
+  rename(Condition = 1, "Sub-group" = 2, "Median (ms)" = median) |>
+  display()
 
-fit_finer_i |> 
+fit_finer_i |>
   estimate_contrasts(
-    contrast = c("congruence", "sub_group"), 
+    contrast = c("congruence", "sub_group"),
     p_adjust = "none"
-  )
+  ) |> 
+  display()
+```
+:::
 
-# emmeans_ex <-
+::: {#supptbl-ex-estimates-finer}
+```{r}
+#| label: emmeans-finer-ex
+#| echo: false
+
+emmeans_finer_ex <-
   emmeans(fit_finer_e, c("congruence", "sub_group")) |>
   summary(point.est = median) |>
   as_tibble() |>
   mutate(across(3:7, ~.*1000)) |>
   rename(median = emmean)
-  
-fit_finer_e |> 
+
+emmeans_finer_ex |>
+  rename(Condition = 1, "Sub-group" = 2, "Median (ms)" = median) |>
+  display()
+
+fit_finer_e |>
   estimate_contrasts(
-    contrast = c("congruence", "sub_group"), 
+    contrast = c("congruence", "sub_group"),
     p_adjust = "none"
-  )
+  ) |> 
+  display()
 ```
+:::
+
+```{r}
+#| label: fig-finer-im
+#| fig-width: 18
+#| fig-height: 7
+
+subj_means_finer_im <-
+  df_i_finer |> 
+  group_by(subjectid, sub_group, congruence) |>
+  reframe(rt = mean(rt)*1000)
+
+(
+  plot_models_full(subj_means_finer_im, "sub_group", emmeans_finer_im, size = 4, dw = .6) +
+  plot_models_zoomed(subj_means_finer_im, "sub_group", emmeans_finer_im, size = 4) &
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
+  )
+) +
+  plot_layout(
+    guides = "collect",
+    widths = c(1, 1.2)
+  )
+
+# ggsave(here("figures/model-implicit-sub-groups.png"), dpi = 600)
+```
+
+
+```{r}
+#| label: fig-finer-ex
+#| fig-width: 18
+#| fig-height: 7
+
+subj_means_finer_ex <-
+  df_e_finer |> 
+  group_by(subjectid, sub_group, congruence) |>
+  reframe(rt = mean(rt)*1000)
+
+(
+  plot_models_full(subj_means_finer_ex, "sub_group", emmeans_finer_ex, y_min = 350, y_max = 1450, size = 4, dw = .6) +
+  plot_models_zoomed(subj_means_finer_ex, "sub_group", emmeans_finer_ex, size = 4) &
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 20),
+    legend.margin = margin(0, 150, 25, 0),
+    axis.title.y = element_text(size = 20),
+    axis.text.x = element_text(size = 18)
+  )
+) +
+  plot_layout(
+    guides = "collect",
+    widths = c(1, 1.2)
+  )
+
+# ggsave(here("figures/model-explicit-sub-groups.png"), dpi = 600)
+```
+
+
+
+
+
+
 
 ::: {.content-visible when-format="html"}
      
