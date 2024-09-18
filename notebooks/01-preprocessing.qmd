@@ -1,0 +1,266 @@
+---
+title: Preprocessing
+subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+eval: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| eval: true
+
+library(here)
+source(here("scripts/_setup.R"))
+```
+
+:::: {.content-visible when-format="html"}
+::: {.callout-note collapse="true"}
+# Packages and setup
+```r
+{{< include ../scripts/_setup.R >}}
+```
+:::
+::::
+
+:::{.content-visible unless-format="html"}
+The code for the outlier detection procedure described in the manuscript can be found in the `data-analysis-report.qmd` file.
+:::
+
+:::{.content-visible when-format="html"}
+Down below is the code for the outlier selection procedure described in the manuscript.
+:::
+
+```{r}
+#| label: questionnaire-data
+#| code-summary: Importing and cleaning questionnaire data
+
+df_questionnaires <- 
+  read_excel(
+    here("data/data-raw/priming-data-raw.xlsx"),
+    sheet = "data_questionnaires"
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
+      vviq80 >= 74 ~ "Hyperphantasia"
+      ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
+    ) |> 
+  rename(
+    "VVIQ" = vviq80,
+    "OSIQ_Object" = osiq_o75,
+    "OSIQ_Spatial" = osiq_s75,
+    "SUIS" = suis60
+  )
+```
+
+```{r}
+#| label: explicit-task
+#| code-summary: Preprocessing for the explicit task
+
+df_e_acc <- 
+  read_excel(
+    here("data/data-raw/priming-data-raw.xlsx"),
+    sheet = "data_explicit"
+  ) |>
+  clean_variables() |> # see _functions.R
+  set_variable_labels(correct_explicit = "Correct response") |> 
+  # filtering out...
+  filter(
+    # participants identified with with high error rates
+    !(subjectid %in% c( 
+      "subject_7",
+      "subject_94", 
+      "subject_25", 
+      "subject_4",
+      "subject_97")) &
+    # participants with aberrant means
+    !(subjectid %in% c(
+      "subject_49",
+      "subject_59",
+      "subject_107",
+      "subject_100",
+      "subject_73",
+      "subject_106",
+      "subject_119"
+    )) 
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
+      vviq80 >= 74 ~ "Hyperphantasia"
+    ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
+  ) |> 
+  # removing irrelevant variables
+  select(!c(sex, vviq80, orientation, response)) |>  
+  # filtering out extreme RTs
+  filter(rt > .3 & rt < 3)
+
+df_e_rt <- 
+  df_e_acc |> 
+  filter(correct_explicit == 1) |> 
+  select(!correct_explicit)
+
+# removing hyperphantasia for finer analyses
+df_e_finer <- df_e_rt |> filter(sub_group != "Hyperphantasia")
+```
+
+```{r}
+#| label: implicit-task
+#| code-summary: Preprocessing for the implicit task
+
+df_i_acc <- 
+  read_excel(
+    here("data/data-raw/priming-data-raw.xlsx"),
+    sheet = "data_implicit"
+  ) |> 
+  clean_variables() |>
+  set_variable_labels(correct_implicit = "Correct response") |>
+  # filtering out...
+  filter(
+    # participants identified with with high error rates
+    !(subjectid %in% c(
+      "subject_21",
+      "subject_56",
+      "subject_9")) &
+      # participants with aberrant means
+      !(subjectid %in% c(
+        "subject_49",
+        "subject_107",
+        "subject_30",
+        "subject_120",
+        "subject_127"
+      ))
+  ) |>
+  mutate(
+    sub_group = case_when(
+      vviq80 == 16 ~ "Aphantasia",
+      vviq80 > 16 & vviq80 < 32 ~ "Hypophantasia",
+      vviq80 >= 32 & vviq80 < 74 ~ "Control",
+      vviq80 >= 74 ~ "Hyperphantasia"
+    ), 
+    sub_group = factor(
+      sub_group, 
+      levels = c("Hyperphantasia", "Control", "Hypophantasia", "Aphantasia"))
+  ) |> 
+  # removing irrelevant variables
+  select(!c(sex, vviq80, orientation, response)) |>  
+  # filtering out extreme RTs
+  filter(rt > .3 & rt < 3)
+
+df_i_rt <-
+  df_i_acc |> 
+  filter(correct_implicit == 1) |> 
+  select(!correct_implicit)
+
+# removing hyperphantasia for finer analyses
+df_i_finer <- df_i_rt |> filter(sub_group != "Hyperphantasia")
+```
+
+```{r}
+#| label: congruence-effects
+#| code-summary: Adding congruence effects to the questionnaire data
+
+congruence_effects <-
+  list(
+    df_e_rt = df_e_rt,
+    df_i_rt = df_i_rt
+  ) |> 
+  imap(
+    ~.x |> 
+      group_by(subjectid, congruence, color) |> 
+      reframe(mean_rt = mean(rt)) |> 
+      group_by(subjectid, congruence) |> 
+      reframe(mean = mean(mean_rt)) |> 
+      pivot_wider(
+        names_from = congruence,
+        values_from = mean
+      ) |> 
+      mutate(congruence_effect = Incongruent - Congruent, .keep = "unused") |> 
+      ungroup()
+  )
+
+df_questionnaires <- 
+  df_questionnaires |>
+  left_join(congruence_effects[["df_e_rt"]], by = "subjectid") |>
+  rename("Explicit effect" = congruence_effect) |>
+  left_join(congruence_effects[["df_i_rt"]], by = "subjectid") |> 
+  rename("Implicit effect" = congruence_effect) |> 
+  select(
+    subjectid:aphantasia, sub_group,
+    contains("Imp"), contains("Exp"), 
+    "VVIQ":"SUIS"
+  ) |> 
+  group_by(aphantasia) |> 
+  mutate(across(
+    contains("effect"),
+    ~if_else(is.na(.x), mean(.x, na.rm = TRUE), .x))) |> 
+  ungroup()
+```
+
+```{r}
+#| label: ranked-and-norm
+#| code-summary: Creating ranked and normalized scores
+
+df_q_ranked <- df_questionnaires |> mutate(across(VVIQ:SUIS, rank))
+
+df_q_norm <- 
+  df_questionnaires |>
+  mutate(
+    VVIQ = as.numeric(
+      scales::rescale(
+        VVIQ, 
+        from = c(16, 80), 
+        to = c(0, 1))),
+    SUIS = as.numeric(
+      scales::rescale(
+        SUIS, 
+        from = c(12, 60), 
+        to = c(0, 1))),
+    OSIQ_Object = as.numeric(
+      scales::rescale(
+        OSIQ_Object, 
+        from = c(15, 75), 
+        to = c(0, 1))),
+    OSIQ_Spatial = as.numeric(
+      scales::rescale(
+        OSIQ_Spatial, 
+        from = c(15, 75), 
+        to = c(0., 1)))
+  )
+```
+
+
+:::: {.content-visible when-format="html"}
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+::: {.callout-note collapse="true"}
+# Session information for reproducibility
+
+```{r}
+#| label: session-information
+#| echo: false
+#| eval: true
+
+cat("═════════════════════════════════════════════════════════════════════════")
+report_system(session = sessionInfo())
+cat("Packages used:")
+report_packages(session = sessionInfo())
+cat("═════════════════════════════════════════════════════════════════════════")
+```
+:::
+::::
+
+

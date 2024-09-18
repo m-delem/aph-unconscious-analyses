@@ -237,40 +237,95 @@ plot_models_zoomed <- function(
 # Table of a questionnaire model ------------------------------------------
 
 generate_model_summary <- 
-  function(model, model_ranked, questionnaire_name){
+  function(model, model_ranked, questionnaire_name, group = "aphantasia"){
     table_summary <-
-      estimate_means(model, by = "aphantasia", p_adjust = "none") |> 
+      estimate_means(model, by = group, p_adjust = "none") |> 
       select(!c(CI_low, CI_high)) |>
       mutate(across(c(Mean, SE), ~as.character(round(.x, digits = 3)))) |> 
       unite("Mean ± SE", Mean:SE, sep = " ± ") |> 
       pivot_wider(
-        names_from = aphantasia,
+        names_from = group,
         values_from = "Mean ± SE"
       ) |> 
       mutate(Questionnaire = questionnaire_name) |> 
-      rename(
-        "Aphantasics" = yes,
-        "Controls" = no
-      ) |> 
+      # rename(
+      #   "Aphantasics" = yes,
+      #   "Controls" = no
+      # ) |> 
       select(Questionnaire, everything()) |> 
       bind_cols(
         estimate_contrasts(
           model_ranked, 
-          contrast = "aphantasia", 
+          contrast = group, 
           p_adjust = "none")[,7:9]
       ) 
     
     return(table_summary)
   }
 
+generate_model_means <- 
+  function(model, questionnaire_name, group = "aphantasia"){
+    table_means <-
+      estimate_means(model, by = group, p_adjust = "none") |> 
+      select(!c(CI_low, CI_high)) |>
+      mutate(across(c(Mean, SE), ~as.character(round(.x, digits = 3)))) |> 
+      unite("Mean ± SE", Mean:SE, sep = " ± ") |> 
+      pivot_wider(
+        names_from = group,
+        values_from = "Mean ± SE"
+      ) |> 
+      mutate(Questionnaire = questionnaire_name) |> 
+      select(Questionnaire, everything())
+    
+    return(table_means)
+  }
+
 
 # Prepare marginal means for display ---------------------------------------
 
-prepare_means <- function(model, questionnaire){
-  estimate_means(model, by = "aphantasia") |> 
+prepare_means <- function(model, questionnaire, group = "aphantasia"){
+  estimate_means(model, by = group) |> 
     mutate(Questionnaire = questionnaire)
 }
 
+# Significance labels for plots -------------------------------------------
+
+plot_significance_labels <- function(
+    plot = plot,
+    # stars
+    label = label,
+    size = 8,
+    # label placement
+    # star
+    x_star = 1.5,
+    y_star = 1.05,
+    # line
+    x_line = 1,
+    x_line_end = 1.95,
+    y_line = 1.03,
+    ...
+){
+  list(
+    # ─── Significance labels ───────────────────────────────────────────────────
+    geom_text(
+      x = x_star,
+      y = y_star,
+      label = label,
+      # inherit.aes = FALSE,
+      color = "black",
+      size = size
+    ),
+    geom_segment(
+      x = x_line,
+      xend = x_line_end,
+      y    = y_line,
+      yend = y_line,
+      # inherit.aes = FALSE,
+      color = "black",
+      linewidth = .5
+    )
+  )
+}
 
 # Plotting correlations ---------------------------------------------------
 
