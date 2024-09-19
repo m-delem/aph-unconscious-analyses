@@ -16,28 +16,6 @@
       "Repository": "CRAN",
       "Hash": "a8235afbcd6316e6e91433ea47661013"
     },
-    "BayesFactor": {
-      "Package": "BayesFactor",
-      "Version": "0.9.12-4.7",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "Matrix",
-        "MatrixModels",
-        "R",
-        "Rcpp",
-        "RcppEigen",
-        "coda",
-        "graphics",
-        "hypergeo",
-        "methods",
-        "mvtnorm",
-        "pbapply",
-        "stringr",
-        "utils"
-      ],
-      "Hash": "5dac49252d6f980e39b2f2d04dd09421"
-    },
     "Brobdingnag": {
       "Package": "Brobdingnag",
       "Version": "1.2-9",
@@ -669,13 +647,6 @@
       ],
       "Hash": "bb097fccb22d156624fd07cd2894ddb6"
     },
-    "contfrac": {
-      "Package": "contfrac",
-      "Version": "1.1-12",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Hash": "57120b229b87ba5206eb33c5b6f04f75"
-    },
     "correlation": {
       "Package": "correlation",
       "Version": "0.8.5",
@@ -799,20 +770,6 @@
         "withr"
       ],
       "Hash": "39b2e002522bfd258039ee4e889e0fd1"
-    },
-    "deSolve": {
-      "Package": "deSolve",
-      "Version": "1.40",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "grDevices",
-        "graphics",
-        "methods",
-        "stats"
-      ],
-      "Hash": "0a861334beb4eb8ca0d24a27b28b6679"
     },
     "desc": {
       "Package": "desc",
@@ -972,17 +929,6 @@
         "utils"
       ],
       "Hash": "7aceb5e07b6d48171c6b56714cc305ea"
-    },
-    "elliptic": {
-      "Package": "elliptic",
-      "Version": "1.4-0",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "MASS",
-        "R"
-      ],
-      "Hash": "4ad4fc696f70fece9399140246f409f3"
     },
     "emmeans": {
       "Package": "emmeans",
@@ -1499,19 +1445,6 @@
         "openssl"
       ],
       "Hash": "ac107251d9d9fd72f0ca8049988f1d7f"
-    },
-    "hypergeo": {
-      "Package": "hypergeo",
-      "Version": "1.2-13",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "contfrac",
-        "deSolve",
-        "elliptic"
-      ],
-      "Hash": "3195e099bdbe91e28310c818d925d471"
     },
     "ids": {
       "Package": "ids",
@@ -2059,17 +1992,6 @@
         "utils"
       ],
       "Hash": "9c8ab14c00ac07e9e04d1664c0b74486"
-    },
-    "pbapply": {
-      "Package": "pbapply",
-      "Version": "1.7-2",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "parallel"
-      ],
-      "Hash": "68a2d681e10cf72f0afa1d84d45380e5"
     },
     "pbkrtest": {
       "Package": "pbkrtest",

@@ -17,7 +17,6 @@ pacman::p_load(
   # ---- packages specific to this project ----
   scales,
   lme4,
-  BayesFactor,
   car,
   simr,
   readxl,

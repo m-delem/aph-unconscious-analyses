@@ -235,7 +235,7 @@ corr_control <-
     filter(aphantasia == "no")  |>
     correlation(method = "spearman", p_adjust = "fdr") 
 
-# corr_whole
+corr_whole
 # corr_aph
 # corr_control
 ```
@@ -367,7 +367,9 @@ fit_acc_ex <-
 
 model_performance(fit_acc_im) |> display()
 
-model_parameters(fit_acc_im) |> display()
+# model_parameters(fit_acc_im) |> display()
+
+Anova(fit_acc_im)
 ```
 
 Performance and estimates of the logistic GLMM fitted on accuracy in the implicit task.
@@ -378,9 +380,9 @@ Performance and estimates of the logistic GLMM fitted on accuracy in the implici
 #| label: estimates-accuracy-implicit
 #| echo: false
 
-estimate_means(fit_acc_im, by = "aphantasia", transform = "response") |> display()
+estimate_means(fit_acc_im, by = "color", transform = "response") |> display()
 
-estimate_contrasts(fit_acc_im, contrast = "aphantasia", transform = "response", p_adjust = "none") |> display()
+estimate_contrasts(fit_acc_im, contrast = "color", transform = "response", p_adjust = "none") |> display()
 ```
 
 Estimated probability of a correct answer and log-odds contrasts between groups for the accuracy in the implicit task.
@@ -393,7 +395,9 @@ Estimated probability of a correct answer and log-odds contrasts between groups 
 
 model_performance(fit_acc_ex) |> display()
 
-model_parameters(fit_acc_ex) |> display()
+# model_parameters(fit_acc_ex) |> display()
+
+Anova(fit_acc_ex)
 ```
 
 Performance and estimates of the logistic GLMM fitted on accuracy in the explicit task.
@@ -404,9 +408,9 @@ Performance and estimates of the logistic GLMM fitted on accuracy in the explici
 #| label: estimates-accuracy-explicit
 #| echo: false
 
-estimate_means(fit_acc_ex, by = "aphantasia", transform = "response") |> display()
+estimate_means(fit_acc_ex, by = "color", transform = "response") |> display()
 
-estimate_contrasts(fit_acc_ex, contrast = "aphantasia", transform = "response", p_adjust = "none") |> display()
+estimate_contrasts(fit_acc_ex, contrast = "color", transform = "response", p_adjust = "none") |> display()
 ```
 
 Estimated probability of a correct answer and log-odds contrasts between groups for the accuracy in the explicit task.
@@ -517,7 +521,9 @@ check_model(
 
 model_performance(fit_implicit) |> display()
 
-model_parameters(fit_implicit) |> display()
+# model_parameters(fit_implicit) |> display()
+
+Anova(fit_implicit)
 ```
 
 Performance and estimates of the GLMM fitted on the implicit task data.
@@ -530,7 +536,9 @@ Performance and estimates of the GLMM fitted on the implicit task data.
 
 model_performance(fit_explicit) |> display()
 
-model_parameters(fit_explicit) |> display()
+# model_parameters(fit_explicit) |> display()
+
+Anova(fit_explicit)
 ```
 
 Performance and estimates of the GLMM fitted on the explicit task data.
@@ -982,9 +990,9 @@ check_model(
 
 model_performance(fit_finer_i) |> display()
 
-model_parameters(fit_finer_i) |> display()
+# model_parameters(fit_finer_i) |> display()
 
-Anova(fit_finer_i, type = 3)
+Anova(fit_finer_i)
 ```
 :::
 
@@ -994,9 +1002,9 @@ Anova(fit_finer_i, type = 3)
 
 model_performance(fit_finer_e) |> display()
 
-model_parameters(fit_finer_e) |> display()
+# model_parameters(fit_finer_e) |> display()
 
-Anova(fit_finer_e, type = 3)
+Anova(fit_finer_e)
 ```
 :::
 
