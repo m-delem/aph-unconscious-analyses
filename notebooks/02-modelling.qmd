@@ -713,6 +713,7 @@ group_effects_finer <-
       estimate_contrasts(lm, contrast = "sub_group", p_adjust = "none") |> 
         mutate(Questionnaire = questionnaire)
         ),
+    anovas = list(Anova(lm_ranked))
     # table = list(generate_model_summary(lm, lm_ranked, questionnaire, group = "sub_group"))
   )
 

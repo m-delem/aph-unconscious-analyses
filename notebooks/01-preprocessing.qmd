@@ -23,7 +23,7 @@ source(here("scripts/_setup.R"))
 ::::
 
 :::{.content-visible unless-format="html"}
-The code for the outlier detection procedure described in the manuscript can be found in the `data-analysis-report.qmd` file.
+The code for the outlier detection procedure described in the manuscript can be found in the `01-preprocessing.qmd` file or the rendered HTML version `01-preprocessing.html`.
 :::
 
 :::{.content-visible when-format="html"}
