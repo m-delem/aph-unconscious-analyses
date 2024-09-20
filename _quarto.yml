@@ -7,45 +7,13 @@ author:
   - name: Maël Delem
     orcid: 0009-0005-8518-1991
     email: mael.delem@univ-lyon2.fr
-    corresponding: true
     url: https://emc.univ-lyon2.fr/equipes/memoire-emotion-et-attention-mea/delem-mael
     affiliations:
     - id: emc
       name: Study of Cognitive Mechanisms (EMC) Laboratory
+      city: Lyon
+      country: France
       url: https://emc.univ-lyon2.fr
-  - name: Rudy Purkart
-    orcid: 0000-0002-5491-9958
-    affiliations:
-    - ref: emc
-    - id: criugm
-      name: Research Center of the Institut Universitaire de Gériatrie de Montréal (CRIUGM)
-      url: https://www.criugm.qc.ca
-  - name: Eddy Cavalli
-    orcid: 0000-0003-3944-1973
-    affiliations:
-    - ref: emc
-  - name: Virginie Ranson
-    affiliations:
-    - ref: emc
-  - name: Charlotte Andrey
-    affiliations:
-    - ref: emc
-  - name: Rémy Versace
-    orcid: 0000-0002-4219-6617
-    affiliations:
-    - ref: emc
-  - name: Gaën Plancher
-    orcid: 0000-0002-0178-6207
-    affiliations:
-    - ref: emc
-    - id: iuf
-      name: Institut Universitaire de France (IUF)
-      url: https://www.iufrance.fr
-
-# --- Common options ---
-# date: "08/06/2024"   # add the publication date if you want to
-date-format: "DD/MM/YYYY"
-date-modified: last-modified
 
 bibliography:
   - "bibliography/references.bib" 
@@ -100,6 +68,7 @@ format:
     # extension to add a block with authors in .docx format
     filters:
       - authors-block
+      - highlight-text
 
   # PDF - see https://github.com/quarto-journals/elsevier
   # elsevier-pdf:

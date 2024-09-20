@@ -1,7 +1,6 @@
 # install.packages("here")
 library(here)
 source(here("scripts/00-preprocessing.R"))
-source(here("scripts/_bayesian-setup.R"))
 
 # Parallel processing variables -------------------------------------------
 
@@ -55,16 +54,12 @@ fit_implicit_aph <-
 
 # fit_implicit_aph |> summary()
 
+
 # Control group ---------------------------------------------
 fit_implicit_con <-
-  update(
-    fit_implicit_aph,
-    newdata = df_i_rt |> filter(aphantasia == "Control"),
-    chains = n_cores,
-    cores  = n_cores,
-    iter   = n_iter,
-    file = here("data/r-data-structures/brms-model-implicit-con.rds"),
-    file_compress = "xz"
+  custom_update(fit_implicit_aph,
+    data = df_i_rt |> filter(aphantasia == "Control"),
+    file = "data/r-data-structures/brms-model-implicit-con.rds"
   )
 
 # fit_implicit_con |> summary()

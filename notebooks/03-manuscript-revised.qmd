@@ -1,0 +1,147 @@
+---
+title: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+abstract: For some people the experience of visual imagery is lacking, a condition recently referred to as aphantasia. So far, most of the studies on aphantasia rely on subjective reports, leaving the question of whether mental images can exist without reaching consciousness unresolved. In the present study, the formation of mental images was estimated in individuals with aphantasia without explicitly asking them to generate mental images. 151 Participants performed an implicit priming task where a probe is assumed to automatically reactivate a mental image. An explicit priming task, where participants were explicitly required to form a mental image after a probe, served as a control task. While control participants showed a priming effect in both the implicit and explicit tasks, aphantasics did not show any priming effects. These results suggest that aphantasia relies on a genuine inability to generate mental images rather than on a deficit in accessing these images consciously. Our priming paradigm might be a promising tool for characterizing mental images without relying on participant introspection.
+keywords: 
+  - Aphantasia 
+  - visual imagery 
+  - sensory priming
+author: 
+  - name: Rudy Purkart
+    orcid: 0000-0002-5491-9958
+    equal-contributor: true
+    affiliations:
+    - ref: emc
+    - id: criugm
+      name: Research Center of the Institut Universitaire de Gériatrie de Montréal (CRIUGM)
+      city: Montreal
+      state: Quebec
+      country: Canada
+      url: https://www.criugm.qc.ca
+  - name: Maël Delem
+    orcid: 0009-0005-8518-1991
+    equal-contributor: true
+    affiliations:
+    - id: emc
+      name: Study of Cognitive Mechanisms (EMC) Laboratory
+      city: Lyon
+      country: France
+      url: https://emc.univ-lyon2.fr
+  - name: Eddy Cavalli
+    orcid: 0000-0003-3944-1973
+    affiliations:
+    - ref: emc
+  - name: Virginie Ranson
+    affiliations:
+    - ref: emc
+  - name: Charlotte Andrey
+    affiliations:
+    - ref: emc
+  - name: Rémy Versace
+    orcid: 0000-0002-4219-6617
+    affiliations:
+    - ref: emc
+  - name: Gaën Plancher
+    orcid: 0000-0002-0178-6207
+    affiliations:
+    - ref: emc
+    - id: iuf
+      name: Institut Universitaire de France (IUF)
+      city: Paris
+      country: France
+      url: https://www.iufrance.fr
+    email: gaen.plancher@univ-lyon2.fr
+    corresponding: true
+format:
+  docx: default
+---
+
+{{< pagebreak >}}
+
+# Introduction
+
+Close your eyes and try to mentally visualize your breakfast table as you sat down to it this morning. Most people would report having a clear image of the scene in their "*mind's eye*": this experience is referred to as visual imagery, commonly defined as the experience of visual sensory information without a direct external stimulus [@pearson_human_2019]. Nonetheless, there are great differences between individuals concerning the vividness of these images, some people even declaring that they have no visual mental images at all. This extreme phenomenon, although already observed in the $19^{th}$ century [@galton1880] and noted in various studies since then [e.g., @farahCaseStudyMental1988; @fawConflictingIntuitionsMay2009; @marksVisualImageryDifferences1973; @mckelvieVVIQPsychometricTest1995; @paivioImageryAbilityVisual1971; @sheehanUnderstandingVariabilityImagery1987; @slatterAlphaRhythmsMental1960], received renewed attention only nine years ago, when @zemanLivesImageryCongenital2015 published a study that has since been highly cited, coining the term "*aphantasia*" to refer to "reduced or absent voluntary imagery".
+
+Early estimates suggest that aphantasia could concern 3-4% of the global population [see for instance @dancePrevalenceAphantasiaImagery2022; @palermoCongenitalLackExtraordinary2022; @dawesCognitiveProfileMultisensory2020]. However, many people with aphantasia may be unaware of it, suggesting a potential underestimation of the phenomenon [@fawConflictingIntuitionsMay2009; @zemanPhantasiaPsychologicalSignificance2020]. Aphantasics often report reduced or absent sensory imagery in various modalities, fewer and less rich dreams [@dawesCognitiveProfileMultisensory2020], reduced episodic and autobiographical memory [@dawesCognitiveProfileMultisensory2020; @zemanPhantasiaPsychologicalSignificance2020], yet with intact spatial imagery [@zemanLivesImageryCongenital2015; @dawesCognitiveProfileMultisensory2020; @bainbridgeQuantifyingAphantasiaDrawing2021; @keoghBlindMindNo2018]. Although self-reports by aphantasics are very consistent across studies, many authors stress the need to cross subjective reports with more objective tasks assessing visual imagery. This need is highlighted by the heterogeneity and complexity of aphantasia: for example, some aphantasics report visual mental imagery when dreaming, some have preserved mental imagery in other sensory modalities, while others report a complete absence of conscious mental imagery, both voluntary and involuntary [@dawesCognitiveProfileMultisensory2020; @zemanPhantasiaPsychologicalSignificance2020]. In light of this, a reliable measurement of visual imagery would be a valuable tool to better define aphantasia. Yet a crucial question for this assessment is still being debated: is aphantasia a genuine absence of mental images, or do aphantasics have them but are simply unable to access them *consciously*?
+
+Some researchers doubt that mental imagery could be completely absent, and have hypothesized that aphantasics who report having no conscious imagery at all might still have *unconscious* mental imagery [@nanay_unconscious_2020]. As this phenomenon is difficult to identify, little is known about unconscious mental imagery in aphantasia. A recent study by @liuProbingUnimaginableImpact2023 used a behavioural task to assess visual imagery in various domains (the French Perception-Imagination Battery) in aphantasics and controls. The task consisted of mentally comparing pairs of items based on various features (e.g. "beaver" - "fox": which is the *longest*?). They found no differences in accuracy between the groups, but slower RTs and lower confidence in the aphantasics' answers, and argued that this result was consistent with aphantasics having the visual images required to succeed at the task , albeit without the knowledge of "how they did it". Similarly, in a task that supposedly required visual imagery to verify whether a target dot was inside the boundaries of a previously presented geometric shape, @jacobsVisualWorkingMemory2018 found no difference in accuracy between an aphantasic participant and controls. As proposed by @nanay_unconscious_2020, this result could be interpreted as reflecting an unconscious comparison of a visual image with the stimuli perceived by the aphantasic participant. Although on a N = 1 case study, this result may still suggest the existence of this unconscious form of imagery in aphantasia. However, due to the potential conscious processes at play in these behavioural tasks (with or without sensory imagery), neither study could completely rule out the hypothesis of aphantasics using strategies other than visual imagery (e.g. semantic processing, spatial imagery) to solve the tasks. This possibility, often raised in discussions about aphantasia [e.g., @jacobsVisualWorkingMemory2018; @knightMemoryImageryNo2022; @liuProbingUnimaginableImpact2023; @monzelImagineYouWill2021], prevents from firmly concluding from these results regarding the existence of unconscious mental images.
+
+On the other hand, several studies that sought to develop objective measures assessing visual imagery found consistent behavioural and physiological differences between aphantasics and controls on imagery tasks, thus challenging Nanay's (2020) hypothesis of unconscious mental imagery in aphantasia [see also @blomkvistAphantasiaSearchTheory2022]. Aphantasics have been shown to have a reduced skin conductance response to frightening scenarios [@wickenCriticalRoleMental2021], a reduced automatic pupil dilatation in reaction to imagined bright stimuli [@kayPupillaryLightResponse2022], or a reduced priming by visual imagery [@keoghBlindMindNo2018], suggesting that aphantasics are truly unable to produce mental images. The latter priming paradigm developed by [@keoghBlindMindNo2018] is particularly often cited as a promising and relatively undemanding task for objectively identifying aphantasia, and has already been used for this purpose in several subsequent studies [e.g., @keoghAttentionDrivenPhantom2020; @changImagelessImageryAphantasia2023]. In their initial study, they investigated visual imagery in aphantasics and controls using a binocular rivalry paradigm: in this task, participants were cued either with the letter “R” (for red) or the letter “G” (for green) and had to imagine one of two images, respectively a red-horizontal Gabor or a green-vertical Gabor. After rating the vividness of their mental image, they were presented with both Gabors simultaneously, one in the left eye, the other in the right, and asked to say which colour they had seen first. Their results showed that the mental visualization of the Gabors influenced the colour seen in the binocular rivalry task for control participants, but not for aphantasics. The authors interpreted this absence of priming in aphantasia as a real inability to generate mental images, and not just as a lack of metacognition skills.
+
+While these conclusions are convincing about conscious imagery, they cannot yet rule out the hypothesis of unconscious mental imagery. A first caveat in this study is that self-diagnosed aphantasics were explicitly asked to *voluntarily* form mental images and rate their vividness during the task. This aspect of their paradigm may have skewed the results from the start, as aphantasics were asked to do something they knew (or believed) they could not do in the first place. It is possible, then, that participants did not fully engage with the task - or did not perform it correctly - because they firmly believed that they would fail to comply with the instructions, due to the awareness of their aphantasia [see @cabbaiInvestigatingRelationshipsTrait2023 for evidence on demand biases in aphantasia]. Secondly, by using explicit priming, their study could not account for potential unconscious mental imagery, which is typically investigated with implicit priming tasks. Consequently, the binocular rivalry paradigm developed by [@keoghBlindMindNo2018; like other objective measures based on explicit instructions to use mental imagery, e.g., @kayPupillaryLightResponse2022; @miltonBehavioralNeuralSignatures2021] cannot exclude the possible existence of unconscious mental images in aphantasia. We aimed to fill this gap by designing an implicit priming task that would allow us to study unconscious mental images in aphantasia.
+
+## The present study {.unnumbered}
+
+The objective of this study was to develop a new task inspired by the binocular rivalry used by @keoghBlindMindNo2018, including a priming task explicitly asking to use mental imagery, along with an implicit priming task specifically targeting unconscious mental imagery. Such a task would provide a novel and unprecedented behavioural method to identify the presence or absence of visual imagery and, by extension, to objectively characterize aphantasia.
+
+To create an implicit task, the paradigm was divided into two parts: a prior association phase, and the implicit task itself. The association phase asked the participants to indicate the colour of a red horizontal Gabor or a blue vertical Gabor to implicitly memorize the colour-orientation association. In the subsequent implicit task, a red or blue coloured circle was presented as a prime before a target, which was a Gabor either congruent or incongruent with the colour seen (see Figures \ref{fig:protocol_asso} and \ref{fig:protocol_implicit} in the Procedure section). As previous works of our team have shown [e.g., @brunelWhenSeeingDog2013; @reyMaskWhoWasn2015; @reyWhenReactivatedVisual2018], the prime is assumed to reactivate an unconscious mental image of the associated Gabor automatically. Participants were then asked to indicate the orientation of the target. An explicit task was added for control and comparison where participants were overtly asked to produce a mental image of the Gabors before the targets. In the explicit task, like in Keogh and Pearson’s study, participants were asked to imagine one of the previous Gabors by presenting a letter (R or B) as a cue. A Gabor congruent or incongruent with the colour was then presented as a target, and participants were asked to indicate the orientation of the lines of the target.
+
+Shorter RTs in the congruent trials compared to the incongruent ones would therefore reflect an influence of unconscious mental images, helping participants to respond faster. Moreover, to ensure that any priming observed would be the consequence of mental imagery (as opposed to semantic priming, for example), in half of the trials the targets were presented in black and white rather in than colour. If aphantasics have only difficulties with conscious mental imagery, a priming effect should be observed for both groups in the implicit task, but not in the explicit one. If aphantasics have difficulties with both conscious and unconscious mental imagery, no priming effect should be observed for the aphantasia group neither in the implicit nor in the explicit task, as opposed to the control group.
+
+In addition, we carried out a second analysis by defining "finer-grained" VVIQ sub-groups, with a subset of our sample composed solely of aphantasics with a minimal VVIQ score of 16, people with low imagery (VVIQ between 17 and 32), hereinafter called "hypophantasics" [using the terminology from @reederNonvisualSpatialStrategies2024], and controls (our sample included only two participants with VVIQ $>$ 75, so group analyses with hyperphantasics were not possible). This analysis aimed at answering a frequent interrogation in aphantasia literature about subgroups in aphantasia with differing characteristics: several authors pointed out that the fact of reporting *completely absent* imagery could be qualitatively very distinct from having only *vague* images [@blomkvistDefiningDiagnosingAphantasia2023; @dancePrevalenceAphantasiaImagery2022; @murakiInsightsEmbodiedCognition2023; @liuProbingUnimaginableImpact2023]. The object of our study, unconscious mental images, is a difficult phenomenon to reach, so this additional analysis could be crucial to judge the effects of our paradigm.
+
+Finally, to assess the potential of this paradigm as a predictive tool for visual imagery ability, we performed correlations between the self-report questionnaires and the magnitude of the priming effect. If this effect is related to the generation of mental images, a clear association should arise between a greater priming effect and higher visual imagery ability.
+
+# Methods
+
+## Participants
+
+We compared a group of self-identified aphantasic individuals with a control group of individuals with self-reported intact visual imagery. Participants were recruited from Facebook online community platforms dedicated to aphantasia in France using a recruitment ad. 151 participants completed the study. All completed an online version of the French Vividness of Visual Imagery Questionnaire [VVIQ-F, @santarpiaEvaluerVivaciteImages2008; adapted from @marksVividnessVisualImagery1973]: aphantasic participants were identified as the ones with a total VVIQ score below 32, which is the conventional threshold used in most studies on aphantasia [e.g., @danceWhatLinkMental2021; @danceWhatRelationshipAphantasia2021; @dawesCognitiveProfileMultisensory2020; @zemanLivesImageryCongenital2015]. 89 participants were in the aphantasic group ($M_{age} = 34.7, \ SD_{age} = 10.6, \ range_{age} = [19;59], \ M_{VVIQ} = 19.2, \ SD_{VVIQ} = 4.6, \ range_{VVIQ} = [16;31.5]$, 65 women) and 62 in the control group ($M_{age} = 33.2, \ SD_{age} = 9.7, \ range = [18;65], \ M_{VVIQ} = 54.5, \ SD_{VVIQ} = 12.3, \ range = [32;78.5]$, 31 women). All participants reported no lesions or acquired neurological or psychiatric disorders and no impaired or uncorrected vision.
+
+The study was carried out following the recommendations of the French Law (Loi Jardé n◦2012- 300) with written informed consent being obtained from all the participants following the Declaration of Helsinki.
+
+## Questionnaires
+
+### Vividness of Visual Imagery Questionnaire - French adaptation (VVIQ-F)
+
+The French version of the VVIQ [VVIQ-F, @santarpiaEvaluerVivaciteImages2008; adapted from @marksVividnessVisualImagery1973] used in this study was adapted in a Google Form version. It consists of sixteen items, each asking participants to imagine a particular scene and rate the vividness of their mental imagery using a Likert scale ranging from 1 ("No image at all, you only know that you are thinking about the object”) to 5 ("Perfectly clear and vivid as if it [were normal]{bg-colour="#FFFF00"} vision").
+
+### Spontaneous use of imagery scale (SUIS)
+
+The French version of the SUIS [SUIS-F, @ceschiImagerieMentalePsychotherapie2018; adapted from @reisbergVisualMemoryWhen1986] used in this study was adapted in a Google Form version. It consists of 12 items, each asking participants to rate the degree to which a spontaneous use of mental imagery in a particular situation is appropriate to them using a Likert scale ranging from 1 (“Never appropriate”) to 5 (“Completely appropriate”). The final score is ranging from 12 to 60.
+
+### Object and spatial imagery questionnaire (OSIQ)
+
+The French version of the OSIQ [Dutriaux, unpublished, adapted from @blazhenkovaObjectspatialImageryNew2006] used in this study was adapted in a Google Form version. It consists of 30 items, half of the items (i.e., 15 items) are used to assess participants’ ability to imagine an object’s shape, texture, and colour (object imagery score), and the other half (i.e., 15 items) are used to assess participants’ ability to imagine location, movements, and spatial relationships (spatial imagery score). For each item, participants rate the degree to which they agree with the statement using a Likert scale ranging from 1 (“Totally disagree”) to 5 (“Totally agree”).
+
+## Stimuli
+
+### Gabor patterns
+
+Four Gaussian-shaped Gabor patterns were generated: one red Gabor with horizontal lines and one blue Gabor with vertical lines (coloured Gabors); one black Gabor with horizontal lines and one black Gabor with vertical lines (uncoloured Gabors). All Gabor were superposed on a white 160 $\times$ 160 pixels background.
+
+### Cues
+
+Two cues were generated: a red circle and a blue circle. Both were of the same size as the Gabor patterns and were superposed on a white 160x160 pixels background.
+
+## Software
+
+The tasks were programmed using OpenSesame [@mathotOpenSesameOpensourceGraphical2012] and were uploaded on Jatos [@langeJustAnotherTool2015], a server used to run experiments online. All the experimental material is openly available on OSF (<https://osf.io/635dv/?view_only=72898c1e036c456b97e688629563a47f>).
+
+## Procedure {#sec-procedure}
+
+Participants were provided with two links, one directing to the experiments, and one directing to the questionnaire. They were instructed to perform the experiments and the questionnaires alone, in a quiet and not distracting environment, and to turn off their phones and other messaging devices. They were also asked to use a computer with a keyboard, as well as a good internet connection. Once participants clicked on the link to the experiments, the first experimental task launched.
+
+![***Associative task.*** A fixation cross (500 ms) is followed by one of the two coloured Gabor. Participants had to indicate the colour of the Gabor by pressing the corresponding key (either R for Red or B for Blue), without time constraint. Each Gabor was presented 50 times.](../figures/protocol-implicit.png){#fig-protocol_asso}
+
+Participants began with the implicit priming task. This task began with an associative phase (@fig-protocol_asso) in which a fixation cross (500 ms) was followed by one of the two coloured Gabor, and participants had to indicate the colour of the Gabor by pressing the corresponding key (either R for Red or B for Blue), without time constraint. Each Gabor was presented 50 times. After the association phase, participants started the implicit priming test phase (@fig-protocol_implicit) in which a fixation cross (500 ms) was followed by a cue (150 ms) that was either a red or a blue circle, and then depending on the condition by either one of the two coloured Gabor or by one of the uncoloured Gabor, as a target. Participants had to indicate the orientation of the Gabor’s lines by pressing the corresponding key (either H for horizontal, or V for vertical), using only their dominant hand. In the congruent condition, the cue has the same colour as the target Gabor (coloured condition) or primed the Gabor with the same line orientation as the black target Gabor (uncoloured condition), contrary to the non-congruent condition. There were 16 trials per congruence and colour pairs, amounting to 64 trials total for the task.
+
+![***Implicit priming task.*** A fixation cross (500 ms) is followed by a cue (150 ms) that was either a red or a blue circle, and then by one of the two coloured Gabor, or by one of the uncoloured Gabor, as a target. Participants had to indicate the orientation of the Gabor’s lines by pressing the corresponding key (either H for horizontal, or V for vertical), using only their dominant hand.](../figures/protocol-implicit.png){#fig-protocol_implicit}
+
+After the implicit priming task and a short break, participants transitioned to the explicit task (@fig-protocol_explicit) in which a fixation cross (500 ms) was followed by a letter as a cue (1500 ms) that was either the letter R (for red) or B (for blue). In response to the cue, participants were asked to form a mental imagery of the corresponding Gabor (a red with horizontal lines or a blue with vertical lines) and to keep that image in mind during 3000 ms while fixing the centre of a blank screen. Then, a fixation cross (500 ms) was presented followed by one of the two coloured Gabor, or by one of the uncoloured Gabor, and participants had to indicate the orientation of the Gabor’s lines by pressing the corresponding key (either H for horizontal, or V for vertical), using only their dominant hand. In the congruent condition, the cue designated the same colour as the target Gabor (coloured condition) or primed the Gabor with the same line orientation as the black target Gabor (uncoloured condition), contrary to the non-congruent condition. Likewise, there were 16 trials per congruence and colour pairs, amounting to 64 trials total for the task. It is worth mentioning that participants had practice trials at the beginning of each task and phase. Moreover, the implicit priming task was divided into two blocks, each beginning with the association phase, and ending with the implicit priming phase, to preserve the association between the colour of the Gabor and the orientation of its lines.
+
+![***Explicit priming task.*** A fixation cross (500 ms) was followed by a letter as a cue (1500 ms) that was either the letter R (for red) or B (for blue). In response to the cue, participants were asked to form a mental imagery of the corresponding Gabor (a red with horizontal lines or a blue with vertical lines) and to keep that imagery in mind during 3000 ms while fixing the centre of a blank screen. Then, a fixation cross (500 ms) was presented followed by one of the two coloured Gabor, or by one of the uncoloured Gabor, and participants had to indicate the orientation of the Gabor’s lines by pressing the corresponding key (either H for horizontal, or V for vertical), using only their dominant hand.](../figures/protocol-explicit.png){#fig-protocol_explicit}
+
+## Analyses
+
+The data analysis was programmed in R language [version 4.2.0, @r2022] on RStudio [@rstudio2023]. The raw data, code, and analysis outputs are available on OSF (<https://osf.io/635dv/?view_only=72898c1e036c456b97e688629563a47f>).
+
+### Self-report questionnaires
+
+The scores of the four questionnaires were modelled with Generalized Linear Models (GLMs) to accommodate the non-normal distributions of several questionnaires (mostly bi-modal distributions due to our two groups) and to control for the influence of age on the group differences. The GLMs were fitted with Gamma distributions, chosen as the best one against Gaussian and inverse Gaussian distributions fitted and compared using the Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC). The models included the *Group* as a categorical predictor and the *Age* as a continuous covariate. For group differences, we report estimated means, their standard errors, and two-tailed *p*-values of marginal contrasts between means, computed using a Wald *t*-distribution approximation.
+
+{{< pagebreak >}}
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
