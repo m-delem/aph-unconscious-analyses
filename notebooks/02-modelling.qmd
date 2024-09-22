@@ -1,6 +1,19 @@
 ---
 title: Modelling report
 subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+# setting for proper numbering of sections
+crossref: 
+  chapters: true
+  custom:
+    - kind: float
+      key: suppfig
+      reference-prefix: Figure S
+      space-before-numbering: false
+    - kind: float
+      key: supptbl
+      reference-prefix: Table S
+      space-before-numbering: false
+supptbl-cap-location: top
 ---
 
 ```{r}
@@ -218,26 +231,12 @@ ggsave(here("figures/questionnaires.png"), dpi = 600)
 ```{r}
 #| label: tables-corr-questionnaires
 
-corr_whole <- 
+corr <- 
   df_questionnaires |> 
     select(aphantasia, "Implicit effect":"SUIS") |>
     correlation(method = "spearman", p_adjust = "fdr") 
 
-corr_aph <-
-  df_questionnaires |>
-    select(aphantasia, "Implicit effect":"SUIS") |>
-    filter(aphantasia == "yes") |>
-    correlation(method = "spearman", p_adjust = "fdr") 
-
-corr_control <-
-  df_questionnaires |>
-    select(aphantasia, "Implicit effect":"SUIS") |>
-    filter(aphantasia == "no")  |>
-    correlation(method = "spearman", p_adjust = "fdr") 
-
-corr_whole
-# corr_aph
-# corr_control
+corr
 ```
 
 ::: {#suppfig-corr-mat-questionnaires}
@@ -246,20 +245,10 @@ corr_whole
 #| fig-width: 10
 #| fig-height: 6
 
-corr_whole |> summary() |> plot() + 
+corr |> summary() |> plot() + 
   labs(title = "Correlation matrix, whole group (Spearman FDR corrected)")
 
 # ggsave(here("figures/corr-mat-whole.png"), dpi = 600)
-
-# corr_aph |> summary() |> plot() +
-#   labs(title = "Correlation matrix, aphantasia group only (Spearman FDR corrected)")
-
-# ggsave(here("figures/corr-mat-aph.png"), dpi = 600)
-
-# corr_control |> summary() |> plot() +
-#   labs(title = "Correlation matrix, control group only (Spearman FDR corrected)")
-
-# ggsave(here("figures/corr-mat-control.png"), dpi = 600)
 ```
 :::
 
@@ -683,7 +672,7 @@ df_i_acc |>
 ```
 :::
 
-Interestingly, we have 39 participants that did not score at floor VVIQ but between 17 and 32, a score range that @reeder have proposed to call "hypophantasia". However, our sample comprised only 2 hyperphantasics, i.e. participants scoring above 74 [@zeman2024]. These two participants will therefore be removed from the sample before performing new analyses on the aphantasic, hypophantasic and control groups.
+Interestingly, we have 39 participants that did not score at floor VVIQ but between 17 and 32, a score range that @reederNonvisualSpatialStrategies2024 have proposed to call "hypophantasia". However, our sample comprised only 2 hyperphantasics, i.e. participants scoring above 74 [@zemanPhantasiaPsychologicalSignificance2020]. These two participants will therefore be removed from the sample before performing new analyses on the aphantasic, hypophantasic and control groups.
 
 ## Questionnaires analyses
 
@@ -1088,7 +1077,7 @@ subj_means_finer_im <-
     widths = c(1, 1.2)
   )
 
-# ggsave(here("figures/model-implicit-sub-groups.png"), dpi = 600)
+# ggsave(here("figures/model-implicit-finer.png"), dpi = 600)
 ```
 
 
@@ -1119,12 +1108,243 @@ subj_means_finer_ex <-
     widths = c(1, 1.2)
   )
 
-# ggsave(here("figures/model-explicit-sub-groups.png"), dpi = 600)
+# ggsave(here("figures/model-explicit-finer.png"), dpi = 600)
 ```
 
+# Bayesian modelling
+
+We used Bayesian hypothesis testing to assess the congruence effect separately for each group. Thus, for each subset of the data (control, aphantasia, hypophantasia, aphantasia without hypo., control without hyperphantasia), we fitted a model with the formula $RT \sim (congruence + color)^3 + (1|subjectid)$ and compared the models with and without the congruence effect using Bayes Factors.
+
+```{r}
+#| label: model-formula
+#| code-fold: false
+
+formula <- bf(rt ~ congruence * color + (1 | subjectid))
+```
+
+We used more sensible priors than the default ones as regularizing priors to avoid overfitting.
+
+```{r}
+#| label: priors
+#| code-fold: false
+
+# to see the default priors:
+# get_prior(formula, data = df_i_rt, family = shifted_lognormal())
+# need to define better priors for the intercept, sigma, b, and sd
+
+prior <- c(
+  prior(normal(-1, 0.5), class = 'Intercept'),  # around exp(-1) = 0.36 secs
+  prior(normal(0.4, 0.3), class = 'sigma'), # SD of individual rts in log-units
+  prior(normal(0, 0.3), class = 'b'), # around exp(-1) - exp(-1 + 0.3) = 150 ms 
+  prior(normal(0.3, 0.1), class = 'sd')  # some variability between participants
+)
+```
+
+Bayesian models were fitted using the `brms` package with the `cmdstanr` backend. We used parallel processing to fit the models. We aimed for 40000 post-warmup iterations to have sufficient draws to compute reliable Bayes Factors. Using a computer with 20 cores available for parallel processing, we could fit 20 chains of 3000 iterations with 1000 warmup iterations. Each model fitted in approximately 1 minute. Model fits are saved as `.rds` files for reproducibility and can be found on OSF in the analysis project, under the `data/r-data-structures` folder.
+
+```{r}
+#| label: brms-setup
+
+# detecting the number of cores to use
+n_cores <- parallel::detectCores() - 4
+
+# defining the number of iterations per chain (+ 1000 warm-up)
+n_iter <- ceiling(40000 / n_cores) + 1000
+
+# cmdstanr options
+options(cmdstanr_warn_inits = FALSE)
+```
+
+```{r}
+#| label: model-fit
+#| code-summary: Fitting the first model
+
+# Implicit task, aphantasia group ---------------------------------------------
+fit_implicit_aph <- 
+  brm(
+    formula = formula,
+    data = df_i_rt |> filter(aphantasia == "Aphantasia"),
+    family = shifted_lognormal(),
+    prior = prior,
+    sample_prior = TRUE,
+    chains = n_cores,
+    cores  = n_cores,
+    iter   = n_iter,
+    warmup = 1000,
+    refresh = 5,
+    backend = "cmdstanr",
+    stan_model_args = list(stanc_options = list("O1")),
+    save_pars = save_pars(all = TRUE),
+    file = here("data/r-data-structures/brms-model-implicit-aph.rds"),
+    file_compress = "xz"
+  )
+```
+
+To save compilation time, we used the `brms` function `update` to use the first compiled model as a template for all the others.
+
+```{r}
+#| label: model-updates
+#| code-summary: Updating the first model for the other groups
+
+# Implicit task models ----------------------------------------------------
+
+# Control group ---------------------------------------------
+fit_implicit_con <-
+  # the `custom_update` function can be found in the `scripts/_functions.R` file
+  custom_update(fit_implicit_aph,
+    data = df_i_rt |> filter(aphantasia == "Control"),
+    file = "data/r-data-structures/brms-model-implicit-con.rds"
+  )
+
+# Finer aphantasia group -------------------------------------
+fit_implicit_finer_aph <- 
+  custom_update(fit_implicit_aph,
+    data = df_i_finer |> filter(sub_group == "Aphantasia"),
+    file = "data/r-data-structures/brms-model-implicit-finer-aph.rds"
+  )
+
+# Hypophantasia group -------------------------------------
+fit_implicit_hypo <- 
+  custom_update(fit_implicit_aph,
+    data = df_i_finer |> filter(sub_group == "Hypophantasia"),
+    file = "data/r-data-structures/brms-model-implicit-hypo.rds"
+  )
+
+# Finer control group -------------------------------------
+fit_implicit_finer_con <- 
+  custom_update(fit_implicit_aph,
+    data = df_i_finer |> filter(sub_group == "Control"),
+    file = "data/r-data-structures/brms-model-implicit-finer-con.rds"
+  )
 
 
+# Explicit task models -----------------------------------------------------
 
+# Aphantasia group ---------------------------------------------
+fit_explicit_aph <- 
+  custom_update(fit_implicit_aph,
+    data = df_e_rt |> filter(aphantasia == "Aphantasia"),
+    file = "data/r-data-structures/brms-model-explicit-aph.rds"
+  )
+
+# Control group ---------------------------------------------
+fit_explicit_con <- 
+  custom_update(fit_implicit_aph,
+    data = df_e_rt |> filter(aphantasia == "Control"),
+    file = "data/r-data-structures/brms-model-explicit-con.rds"
+  )
+
+# Finer aphantasia group -------------------------------------
+fit_explicit_finer_aph <- 
+  custom_update(fit_implicit_aph,
+    data = df_e_finer |> filter(sub_group == "Aphantasia"),
+    file = "data/r-data-structures/brms-model-explicit-finer-aph.rds"
+  )
+
+# Hypophantasia group -------------------------------------
+fit_explicit_hypo <- 
+  custom_update(fit_implicit_aph,
+    data = df_e_finer |> filter(sub_group == "Hypophantasia"),
+    file = "data/r-data-structures/brms-model-explicit-hypo.rds"
+  )
+
+# Finer control group -------------------------------------
+fit_explicit_finer_con <- 
+  custom_update(fit_implicit_aph,
+    data = df_e_finer |> filter(sub_group == "Control"),
+    file = "data/r-data-structures/brms-model-explicit-finer-con.rds"
+  )
+```
+We finally compute Bayes Factor in favour of the null model of an absence of congruence effect for each group.
+
+```{r}
+#| label: bayes-factors
+#| echo: false
+
+cat("Implicit task models ------------------------------------------------\n")
+
+# Aphantasia group
+cat(
+  "Aphantasia group, evidence against an implicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_implicit_aph, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Control group
+cat(
+  "Control group, evidence against an implicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_implicit_con, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Finer aphantasia group
+cat(
+  "Finer aphantasia group, evidence against an implicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_implicit_finer_aph, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Hypophantasia group
+cat(
+  "Hypophantasia group, evidence against an implicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_implicit_hypo, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Finer control group
+cat(
+  "Finer control group, evidence against an implicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_implicit_finer_con, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+cat("\nExplicit task models ------------------------------------------------\n")
+
+# Aphantasia group
+cat(
+  "Aphantasia group, evidence against an explicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_explicit_aph, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Control group
+cat(
+  "Control group, evidence against an explicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_explicit_con, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Finer aphantasia group
+cat(
+  "Finer aphantasia group, evidence against an explicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_explicit_finer_aph, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Hypophantasia group
+cat(
+  "Hypophantasia group, evidence against an explicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_explicit_hypo, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+
+# Finer control group
+cat(
+  "Finer control group, evidence against an explicit congruence effect: \n",
+  "BF_01 =",
+  hypothesis(fit_explicit_finer_con, "congruence1 = 0")$hypothesis$Evid.Ratio,
+  "\n"
+  )
+```
 
 
 

@@ -28,6 +28,8 @@ execute:
 
 toc: true
 number-sections: true
+number-depth: 3
+tbl-cap-location: bottom
 
 # --- Format-specific options ---
 format:
@@ -84,17 +86,3 @@ format:
   #       \let\tableofcontentsORIG\tableofcontents
   #       \renewcommand\tableofcontents{\tableofcontentsORIG\clearpage}
 
-# setting for proper numbering of sections
-crossref: 
-  chapters: true
-  custom:
-    - kind: float
-      key: suppfig
-      reference-prefix: Figure S
-      space-before-numbering: false
-    - kind: float
-      key: supptbl
-      reference-prefix: Table S
-      space-before-numbering: false
-
-supptbl-cap-location: top

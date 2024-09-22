@@ -1,6 +1,19 @@
 ---
 title: Power Analysis
 subtitle: "Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm"
+# setting for proper numbering of sections
+crossref: 
+  chapters: true
+  custom:
+    - kind: float
+      key: suppfig
+      reference-prefix: Figure S
+      space-before-numbering: false
+    - kind: float
+      key: supptbl
+      reference-prefix: Table S
+      space-before-numbering: false
+supptbl-cap-location: top
 ---
 
 ```{r}
@@ -104,7 +117,7 @@ extract_coefficients <- function(effectsize) {
 }
 ```
 
--   Random intercepts: We included a random intercept for participants with a standard deviation of 150ms. This number was derived from the literature [see @fucciReadyHelpNo2023] - however, previous simulation studies have shown that the magnitude of random intercepts has no effect on statistical power whatsoever [@brysbaert], a result that we could verify in our own simulations.
+-   Random intercepts: We included a random intercept for participants with a standard deviation of 150ms. This number was derived from the literature [see @fucciReadyHelpNo2023] - however, previous simulation studies have shown that the magnitude of random intercepts has no effect on statistical power whatsoever [@brysbaertPowerAnalysisEffect], a result that we could verify in our own simulations.
 
 -   Random slopes: We included random by-participant slopes for Congruence and Color, thus specifying the *full model* given our factors and resulting in the most conservative power estimates. Standard deviations of random slopes are virtually never reported in scientific publications; we set them at 50ms, which is in the same range as the maximum expected population-average effect size.
 
