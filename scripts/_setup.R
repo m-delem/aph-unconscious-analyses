@@ -37,6 +37,7 @@ pacman::p_load(
   brms,      # Bayesian regression models
   tidybayes, # tidy output for brms
   bayesplot, # Bayesian visualisations
+  parallel,  # parallel processing
   cmdstanr,  # Stan interface
   
   # ---- Visualisations
@@ -76,4 +77,13 @@ set.seed(14051998)
 
 # Adding all packages' citations to a .bib --------------------------------
 knitr::write_bib(c(.packages()), file = here("bibliography/packages.bib"))
+
+
+# Parallel processing -----------------------------------------------------
+
+# number of cores to use
+n_cores <- parallel::detectCores() - 4
+
+# number of iterations per chain for Bayesian MCMC sampling (+ 1000 warm-up)
+n_iter <- ceiling(40000 / n_cores) + 1000
 
