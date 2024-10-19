@@ -14,6 +14,7 @@ crossref:
       reference-prefix: Table S
       space-before-numbering: false
 supptbl-cap-location: top
+format: html
 ---
 
 ```{r}

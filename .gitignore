@@ -15,17 +15,4 @@
 /.quarto/
 _products
 _freeze
-# ignore anything in the data directory if need be (e.g. for privacy)
-# data/*
-data/ignored/*
-data/r-data-structures/brms-model-5.rds
-
-data/r-data-structures/brms-model-6.rds
-
-data/r-data-structures/brms-model-7.rds
-
-data/r-data-structures/brms-model-8.rds
-
-data/r-data-structures/brms-model-explicit.rds
-
-data/r-data-structures/brms-model-implicit.rds
+docs/*
