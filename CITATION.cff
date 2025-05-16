@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+authors:
+- family-names: "Delem"
+  given-names: "Maël"
+  orcid: "https://orcid.org/0009-0005-8518-1991"
+title: "Data analysis project for 'Are there unconscious visual images in aphantasia? Development of an implicit priming paradigm'"
+version: 1.0.0
+doi: 10.1016/j.cognition.2024.106059
+date-released: 2024-12-28
+url: "https://www.sciencedirect.com/science/article/pii/S0010027724003457"
